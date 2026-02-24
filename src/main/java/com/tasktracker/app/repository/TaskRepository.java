@@ -16,7 +16,7 @@ public interface TaskRepository {
    * @param type List of String
    * @param description String
    * @param priority String
-   * @param status String
+   * @param status List of String
    * @param date LocalDate
    * @param dueDate LocalDate
    */
@@ -26,7 +26,7 @@ public interface TaskRepository {
       List<String> type,
       String description,
       String priority,
-      String status,
+      List<String> status,
       LocalDate date,
       LocalDate dueDate);
 

@@ -1,103 +1,179 @@
 package com.tasktracker.app.domain;
 
+import com.tasktracker.app.utils.VerifyData;
 import java.time.LocalDate;
-import java.util.List;
-
-// TODO: Change the status to a enum
-// TODO: change the type to a enum
 
 /** Task. */
 public class Task {
 
-  private int id;
-  private String title;
-  private List<String> type;
-  private String description;
-  private String priority;
-  private String status;
-  private LocalDate date;
-  private LocalDate dueDate;
+  private final int id;
+  private final String title;
+  private final String type;
+  private final String description;
+  private final String priority;
+  private final String status;
+  private final LocalDate date;
+  private final LocalDate dueDate;
 
-  private Task(
-      int id,
-      String title,
-      List<String> type,
-      String description,
-      String priority,
-      String status,
-      LocalDate date,
-      LocalDate dueDate) {
-    this.id = id;
-    this.title = title;
-    this.type = type;
-    this.description = description;
-    this.priority = priority;
-    this.status = status;
-    this.date = date;
-    this.dueDate = dueDate;
+  private Task(Builder build) {
+    VerifyData.verifyInt(build.id, "The id must be > 0");
+    this.id = build.id;
+
+    VerifyData.verifyString(build.title, "The title must have a value");
+    this.title = build.title;
+
+    if (build.type != null && !build.type.isEmpty()) {
+      VerifyData.verifyEnum(build.type, TaskType.class, "The type is not valid");
+    }
+    this.type = build.type;
+
+    this.description = build.description;
+
+    if (build.priority != null && !build.priority.isEmpty()) {
+      VerifyData.verifyEnum(build.priority, TaskPriority.class, "The priority is not valid");
+    }
+    this.priority = build.priority;
+
+    if (build.status != null && !build.status.isEmpty()) {
+      VerifyData.verifyEnum(build.status, TaskStatus.class, "The Status is not valid");
+    }
+    this.status = build.status == null ? TaskStatus.TODO.toString() : build.status;
+
+    this.date = build.date == null ? LocalDate.now() : build.date;
+
+    if (build.dueDate == null) {
+      this.dueDate = this.date.plusDays(1);
+    } else if (this.date.isAfter(build.dueDate)) {
+      throw new IllegalArgumentException("The due date must be after the date");
+    } else {
+      this.dueDate = build.dueDate;
+    }
+  }
+
+  /** Create a Task using a Builder. */
+  public static class Builder {
+    private final int id;
+    private final String title;
+    private String type;
+    private String description;
+    private String priority;
+    private String status;
+    private LocalDate date;
+    private LocalDate dueDate;
+
+    /**
+     * Create a task using only the id and title.
+     *
+     * @param id int if the value is < 0 throw IllegalArgumentException
+     * @param title String if the value is null or does not have a value throw
+     *     IllegalArgumentException
+     */
+    public Builder(int id, String title) {
+      this.id = id;
+      this.title = title;
+    }
+
+    /**
+     * Add the type to the task.
+     *
+     * @param type String
+     * @return Builder
+     */
+    public Builder type(String type) {
+      this.type = type;
+      return this;
+    }
+
+    /**
+     * Add the description to the task.
+     *
+     * @param description String
+     * @return Builder
+     */
+    public Builder description(String description) {
+      this.description = description;
+      return this;
+    }
+
+    /**
+     * Add the priority to the Task.
+     *
+     * @param priority String
+     * @return Build
+     */
+    public Builder priority(String priority) {
+      this.priority = priority;
+      return this;
+    }
+
+    /**
+     * Add the status to the task.
+     *
+     * @param status String
+     * @return Builder
+     */
+    public Builder status(String status) {
+      this.status = status;
+      return this;
+    }
+
+    /**
+     * Add the date to the task.
+     *
+     * @param date LocalDate
+     * @return Builder
+     */
+    public Builder date(LocalDate date) {
+      this.date = date;
+      return this;
+    }
+
+    /**
+     * Add the due date to task.
+     *
+     * @param dueDate LocalDate
+     * @return Builder
+     */
+    public Builder dueDate(LocalDate dueDate) {
+      this.dueDate = dueDate;
+      return this;
+    }
+
+    /**
+     * Creates a copy of a task and trasformit into a builder.
+     *
+     * @param task Task
+     * @return Builder
+     */
+    public static Builder from(Task task) {
+      return new Builder(task.getId(), task.getTitle())
+          .type(task.getType())
+          .description(task.getDescription())
+          .status(task.getStatus())
+          .priority(task.getPriority())
+          .date(task.getDate())
+          .dueDate(task.getDueDate());
+    }
+
+    /**
+     * Create the task.
+     *
+     * @return Task
+     */
+    public Task build() {
+      return new Task(this);
+    }
   }
 
   /**
-   * Create a Task using a factory method.
+   * Update the status creating a new task and returning it.
    *
-   * @param id int if the value is < 0 throw IllegalArgumentException
-   * @param title String if the value is null or does not have a value throw
-   *     IllegalArgumentException
-   * @param type List of String if the type is null or the size is equals to 0 throw
-   *     IllegalArgumentException
-   * @param description String if the value is null or does not have a value throw
-   *     IllegalArgumentException
-   * @param priority String if the value is null or does not have a value throw
-   *     IllegalArgumentException
-   * @param status String if the value is null or does not have a value throw
-   *     IllegalArgumentException
-   * @param date String (optional, if you dont pass a date creates a date using LocalDate.now())
-   * @param dueDate String (optional, if you dont pass a date creates a due date using the date plus
-   *     one day)
+   * @param s String (status to change), if the status is invalud throw a IllegalArgumentException
    * @return Task
    */
-  public static Task of(
-      int id,
-      String title,
-      List<String> type,
-      String description,
-      String priority,
-      String status,
-      LocalDate date,
-      LocalDate dueDate) {
-    if (id < 0) {
-      throw new IllegalArgumentException("ID must have a value < 0");
-    }
-
-    if (title == null || title.isBlank()) {
-      throw new IllegalArgumentException("Title must have a value");
-    }
-
-    if (type == null || type.size() == 0) {
-      throw new IllegalArgumentException("The list type must have value and not be null");
-    }
-
-    if (description == null || description.isBlank()) {
-      throw new IllegalArgumentException("Description must have a value");
-    }
-
-    if (priority == null || priority.isBlank()) {
-      throw new IllegalArgumentException("Description must have a value");
-    }
-
-    if (status == null || status.isBlank()) {
-      throw new IllegalArgumentException("Description must have a value");
-    }
-
-    return new Task(
-        id,
-        title,
-        type,
-        description,
-        priority,
-        status,
-        date != null ? date : LocalDate.now(),
-        dueDate != null ? dueDate : date.plusDays(1));
+  public Task updateStatus(String s) {
+    VerifyData.verifyEnum(s, TaskStatus.class, "Invalid status");
+    return Builder.from(this).status(s).build();
   }
 
   public int getId() {
@@ -108,7 +184,7 @@ public class Task {
     return title;
   }
 
-  public List<String> getType() {
+  public String getType() {
     return type;
   }
 
@@ -120,15 +196,15 @@ public class Task {
     return priority;
   }
 
+  public String getStatus() {
+    return status;
+  }
+
   public LocalDate getDate() {
     return date;
   }
 
   public LocalDate getDueDate() {
     return dueDate;
-  }
-
-  public String getStatus() {
-    return status;
   }
 }
