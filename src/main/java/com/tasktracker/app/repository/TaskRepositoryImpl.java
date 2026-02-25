@@ -3,8 +3,12 @@ package com.tasktracker.app.repository;
 import com.tasktracker.app.domain.Task;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+
+// TODO: test what happend when a task in the filter/order doesnt have value
 
 /** TaskRepositoryImpl. */
 public class TaskRepositoryImpl implements TaskRepository {
@@ -15,61 +19,76 @@ public class TaskRepositoryImpl implements TaskRepository {
   public void createTask(
       int id,
       String title,
-      List<String> type,
+      String type,
       String description,
       String priority,
-      List<String> status,
+      String status,
       LocalDate date,
       LocalDate dueDate) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'createTask'");
+    taskList.add(
+        new Task.Builder(id, title)
+            .type(type)
+            .description(description)
+            .priority(priority)
+            .status(status)
+            .date(date)
+            .dueDate(dueDate)
+            .build());
   }
 
   @Override
   public List<Task> getAllTask() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getAllTask'");
+    return Collections.unmodifiableList(taskList);
   }
 
   @Override
   public List<Task> filterByType(String type) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'filterByType'");
+    return taskList.stream().filter(t -> t.getType().equals(type)).toList();
   }
 
   @Override
   public List<Task> filterByPriority(String type) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'filterByPriority'");
+    return taskList.stream().filter(t -> t.getPriority().equals(type)).toList();
   }
 
   @Override
   public List<Task> filterByStatus(String type) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'filterByStatus'");
+    return taskList.stream().filter(t -> t.getStatus().equals(type)).toList();
   }
 
   @Override
   public void completeTask(Task task) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'completeTask'");
+    task.updateStatus("DONE");
   }
 
   @Override
   public List<Task> orderByDueDate() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'orderByDueDate'");
+    return taskList.stream()
+        .filter(t -> !t.getStatus().equals("DONE"))
+        .sorted(Comparator.comparing(Task::getDueDate).thenComparing(Task::getTitle))
+        .toList();
   }
 
   @Override
   public List<Task> orderByPriority() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'orderByPriority'");
+    return taskList.stream()
+        .filter(t -> !t.getStatus().equals("DONE"))
+        .sorted(Comparator.comparing(Task::getPriority).thenComparing(Task::getTitle))
+        .toList();
   }
 
   @Override
   public Optional<Task> searchById(int id) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'searchById'");
+    return Optional.of(taskList.get(id));
+  }
+
+  @Override
+  public List<Task> getAllTaskComplete() {
+    return taskList.stream().filter(t -> t.getStatus().equals("DONE")).toList();
+  }
+
+  @Override
+  public void undoneTask(Task task) {
+    task.updateStatus("TODO");
   }
 }

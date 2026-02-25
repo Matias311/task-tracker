@@ -13,27 +13,27 @@ public interface TaskRepository {
    *
    * @param id int
    * @param title String
-   * @param type List of String
-   * @param description String
-   * @param priority String
-   * @param status List of String
-   * @param date LocalDate
-   * @param dueDate LocalDate
+   * @param type String can be null
+   * @param description String can be null
+   * @param priority String can be null
+   * @param status String can be null
+   * @param date LocalDate can be null
+   * @param dueDate LocalDate can be null
    */
   void createTask(
       int id,
       String title,
-      List<String> type,
+      String type,
       String description,
       String priority,
-      List<String> status,
+      String status,
       LocalDate date,
       LocalDate dueDate);
 
   /**
    * Get all the Task in memory.
    *
-   * @return List of Task
+   * @return returns a unmodifiable list
    */
   List<Task> getAllTask();
 
@@ -81,6 +81,20 @@ public interface TaskRepository {
    * @return List of Tasks.
    */
   List<Task> orderByPriority();
+
+  /**
+   * Get all the task complete.
+   *
+   * @return List of task
+   */
+  List<Task> getAllTaskComplete();
+
+  /**
+   * Undone a task (change the status to todo ).
+   *
+   * @param task Task
+   */
+  void undoneTask(Task task);
 
   /**
    * Search a task by id.
