@@ -1,7 +1,6 @@
 package com.tasktracker.app.repository;
 
 import com.tasktracker.app.domain.Task;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,29 +8,14 @@ import java.util.Optional;
 public interface TaskRepository {
 
   /**
-   * Create a task.
+   * Save a task in memory.
    *
-   * @param id int
-   * @param title String
-   * @param type String can be null
-   * @param description String can be null
-   * @param priority String can be null
-   * @param status String can be null
-   * @param date LocalDate can be null
-   * @param dueDate LocalDate can be null
+   * @param task Task
    */
-  void createTask(
-      int id,
-      String title,
-      String type,
-      String description,
-      String priority,
-      String status,
-      LocalDate date,
-      LocalDate dueDate);
+  void save(Task task);
 
   /**
-   * Get all the Task in memory.
+   * Get all the Task in memory, if you call it and is empty, return a empty list.
    *
    * @return returns a unmodifiable list
    */
@@ -65,8 +49,9 @@ public interface TaskRepository {
    * Change the status of a task (ex: todo -> done).
    *
    * @param task Task
+   * @return Task return a new task (copy)
    */
-  void completeTask(Task task);
+  Task completeTask(Task task);
 
   /**
    * Order the task by the due date (desc).
@@ -94,7 +79,7 @@ public interface TaskRepository {
    *
    * @param task Task
    */
-  void undoneTask(Task task);
+  Task undoneTask(Task task);
 
   /**
    * Search a task by id.
