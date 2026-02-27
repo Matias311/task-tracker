@@ -43,4 +43,15 @@ public class VerifyData {
       throw new IllegalArgumentException(m);
     }
   }
+
+  /**
+   * Verify if the data have value or is null, if is null or empty return null if not return the
+   * data.
+   *
+   * @param data String
+   * @return String
+   */
+  public static String verifyStringForCli(String data) {
+    return data == null || data.isBlank() ? null : data;
+  }
 }
