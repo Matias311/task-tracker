@@ -10,6 +10,8 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
 
 @DisplayName("Test for class task service")
 public class TaskServiceTest {
@@ -121,14 +123,41 @@ public class TaskServiceTest {
     assertEquals("The task is already in TODO status", ex.getMessage());
   }
 
-  // TODO: terminar
   @Test
   @DisplayName("Search by id")
   void searchTaskById() {
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    service.saveTask(42341, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    assertEquals(42341, service.searchTaskById(42341).get().getId());
   }
 
   @Test
   @DisplayName("Search by invalid id")
-  void searchByInvalidId() {}
+  void searchByInvalidId() {
+    Exception ex =
+        assertThrows(IllegalArgumentException.class, () -> service.searchTaskById(-42314));
+    assertEquals("Invalid id", ex.getMessage());
+  }
+
+  @Test
+  @DisplayName("Undone task")
+  void undoneTask() {
+    Task task = service.undoneTask(new Task.Builder(1, "test").status("DONE").build());
+    assertEquals("TODO", task.getStatus());
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @DisplayName("Undone task with invalid task (null)")
+  void undoneTaskWithNullTask(Task task) {
+    Exception ex = assertThrows(IllegalArgumentException.class, () -> service.undoneTask(task));
+    assertEquals("Invalid task", ex.getMessage());
+  }
+
+  @Test
+  @DisplayName("Undone task with invalid status task (TODO)")
+  void undoneTaskWithInvalidStatusTask() {
+    Task task = new Task.Builder(1, "test").status("TODO").build();
+    Exception ex = assertThrows(IllegalStateException.class, () -> service.undoneTask(task));
+    assertEquals("The task is already in TODO status", ex.getMessage());
+  }
 }

@@ -70,11 +70,9 @@ public class TaskRepositoryImpl implements TaskRepository {
         .toList();
   }
 
-  // TODO: arreglar bug, esta buscando por largo pero esta mal deberia de buscar en toda la lista y
-  // retornar la task con el valor correcto
   @Override
   public Optional<Task> searchById(int id) {
-    return Optional.of(taskList.get(id));
+    return taskList.stream().filter(t -> t.getId() == id).findFirst();
   }
 
   @Override

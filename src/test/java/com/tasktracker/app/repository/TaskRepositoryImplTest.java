@@ -197,9 +197,17 @@ public class TaskRepositoryImplTest {
   @Test
   @DisplayName("Search by id")
   void searchTaskById() {
-    Task task1 = new Task.Builder(1, "1").type("LIVE").priority("HIGH").build();
+    Task task1 = new Task.Builder(111, "1").type("LIVE").priority("HIGH").build();
+    Task task2 =
+        new Task.Builder(222, "2").type("PROGRAMMING").priority("HIGH").status("DONE").build();
+    Task task3 =
+        new Task.Builder(333, "3").type("UNIVERSITY").priority("LOW").status("TODO").build();
+    Task task4 = new Task.Builder(444, "4").type("LIVE").build();
     repo.save(task1);
-    assertEquals(Optional.of(task1), repo.searchById(0));
+    repo.save(task2);
+    repo.save(task3);
+    repo.save(task4);
+    assertEquals(Optional.of(task3), repo.searchById(333));
   }
 
   @Test
