@@ -1,6 +1,5 @@
 package com.tasktracker.app.cli.commands;
 
-import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import com.tasktracker.app.utils.VerifyData;
 
@@ -23,6 +22,7 @@ public class SearchByIdCommand implements TaskCommand {
   public void execute() {
     service
         .searchTaskById(id)
-        .ifPresentOrElse(Task::toString, () -> System.out.println("Didn't find the task"));
+        .ifPresentOrElse(
+            t -> System.out.println(t), () -> System.out.println("Didn't find the task"));
   }
 }
