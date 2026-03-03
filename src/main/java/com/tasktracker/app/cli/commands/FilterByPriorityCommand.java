@@ -1,4 +1,4 @@
-package com.tasktracker.app.cli;
+package com.tasktracker.app.cli.commands;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
@@ -10,7 +10,7 @@ public class FilterByPriorityCommand implements TaskCommand {
   private String priority;
 
   /**
-   * Creates the command using the service to get the filter task by priority
+   * Creates the command using the service to get the filter task by priority.
    *
    * @param service TaskService
    * @param priority String, priority can be: HIGH, MEDIUM, LOW
@@ -26,7 +26,6 @@ public class FilterByPriorityCommand implements TaskCommand {
     if (list.isEmpty()) {
       System.out.println("Empty list");
     } else {
-      // TODO: overwrite toString in task
       list.forEach(System.out::println);
     }
   }

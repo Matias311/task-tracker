@@ -3,6 +3,7 @@ package com.tasktracker.app.service;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
@@ -107,6 +108,16 @@ public class TaskServiceTest {
   }
 
   @Test
+  @DisplayName("Complete task verify in memory the update")
+  void completeTaskInMemory() {
+    service.saveTask(1, "Test", "", "", "", "", "", "");
+
+    List<Task> list = service.getAllTask();
+    service.completeTask(list.get(0));
+    assertEquals("DONE", list.get(0).getStatus());
+  }
+
+  @Test
   @DisplayName("Complete task with null task")
   void completeNullTask() {
     Exception ex = assertThrows(IllegalArgumentException.class, () -> service.completeTask(null));
@@ -141,8 +152,10 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Undone task")
   void undoneTask() {
-    Task task = service.undoneTask(new Task.Builder(1, "test").status("DONE").build());
-    assertEquals("TODO", task.getStatus());
+    service.saveTask(42341, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    Task task = service.searchTaskById(42341).get();
+    service.undoneTask(task);
+    assertEquals("TODO", service.searchTaskById(42341).get().getStatus());
   }
 
   @ParameterizedTest
@@ -159,5 +172,20 @@ public class TaskServiceTest {
     Task task = new Task.Builder(1, "test").status("TODO").build();
     Exception ex = assertThrows(IllegalStateException.class, () -> service.undoneTask(task));
     assertEquals("The task is already in TODO status", ex.getMessage());
+  }
+
+  @Test
+  @DisplayName("Delete task")
+  void deleteTask() {
+    service.saveTask(1, "Test", "", "", "", "", "", "");
+    Task task = service.searchTaskById(1).get();
+    assertTrue(service.deleteTask(task));
+  }
+
+  @Test
+  @DisplayName("Delete task with null task")
+  void deleteTaskWithNull() {
+    Exception ex = assertThrows(IllegalArgumentException.class, () -> service.deleteTask(null));
+    assertEquals("Invalid task", ex.getMessage());
   }
 }

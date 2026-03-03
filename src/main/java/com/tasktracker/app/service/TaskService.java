@@ -193,4 +193,17 @@ public class TaskService {
     }
     return repo.undoneTask(task);
   }
+
+  /**
+   * Delete a task, if its doesnt in memory return false, if its delete return true.
+   *
+   * @param task Task, if you pass a null task throw IllegalArgumentException
+   * @return Boolean
+   */
+  public boolean deleteTask(Task task) {
+    if (task == null) {
+      throw new IllegalArgumentException("Invalid task");
+    }
+    return repo.deleteTask(task);
+  }
 }

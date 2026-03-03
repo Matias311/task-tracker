@@ -1,7 +1,8 @@
-package com.tasktracker.app.cli;
+package com.tasktracker.app.cli.commands;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
+import com.tasktracker.app.utils.VerifyData;
 import java.util.Optional;
 
 public class CompleteTaskCommand implements TaskCommand {
@@ -10,6 +11,10 @@ public class CompleteTaskCommand implements TaskCommand {
   private int id;
 
   public CompleteTaskCommand(TaskService service, int id) {
+    if (service == null) {
+      throw new IllegalArgumentException("Service must have a value");
+    }
+    VerifyData.verifyInt(id, "Id must be > 0");
     this.service = service;
     this.id = id;
   }

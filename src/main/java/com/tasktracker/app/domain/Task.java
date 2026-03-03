@@ -207,4 +207,25 @@ public class Task {
   public LocalDate getDueDate() {
     return dueDate;
   }
+
+  @Override
+  public String toString() {
+    return "Task [id="
+        + id
+        + ", title="
+        + title
+        + ", type="
+        + type
+        + ", description="
+        + description
+        + ", priority="
+        + priority
+        + ", status="
+        + status
+        + ", date="
+        + date
+        + ", dueDate="
+        + dueDate
+        + "]";
+  }
 }

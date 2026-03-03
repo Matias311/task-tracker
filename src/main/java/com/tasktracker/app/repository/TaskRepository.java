@@ -88,4 +88,12 @@ public interface TaskRepository {
    * @return Optional of Task
    */
   Optional<Task> searchById(int id);
+
+  /**
+   * Delete a task in memory.
+   *
+   * @param task Task
+   * @return boolean, true if delete the task, false if doesnt alter the task memory
+   */
+  boolean deleteTask(Task task);
 }

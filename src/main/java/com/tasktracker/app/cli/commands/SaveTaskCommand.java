@@ -1,6 +1,7 @@
-package com.tasktracker.app.cli;
+package com.tasktracker.app.cli.commands;
 
 import com.tasktracker.app.service.TaskService;
+import com.tasktracker.app.utils.VerifyData;
 import java.util.List;
 
 public class SaveTaskCommand implements TaskCommand {
@@ -18,8 +19,12 @@ public class SaveTaskCommand implements TaskCommand {
    *     date, dueDate in that exact order
    */
   public SaveTaskCommand(TaskService service, int id, List<String> data) {
+    if (service == null || data == null || data.isEmpty()) {
+      throw new IllegalArgumentException("The service or data must have a value");
+    }
     this.service = service;
     this.data = data;
+    VerifyData.verifyInt(id, "The id must be > 0");
     this.id = id;
   }
 

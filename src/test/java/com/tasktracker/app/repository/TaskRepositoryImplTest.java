@@ -2,6 +2,7 @@ package com.tasktracker.app.repository;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.domain.Task;
 import java.time.LocalDate;
@@ -137,8 +138,16 @@ public class TaskRepositoryImplTest {
   @Test
   @DisplayName("Complete a task")
   void completeTask() {
-    Task task = new Task.Builder(1, "SI").status("TODO").build();
-    task = task.updateStatus("DONE");
+    Task task1 = new Task.Builder(1, "1").dueDate(LocalDate.now().plusDays(3)).build();
+    Task task2 = new Task.Builder(2, "2").dueDate(LocalDate.now().plusDays(2)).build();
+    Task task3 = new Task.Builder(3, "3").dueDate(LocalDate.now().plusDays(3)).build();
+    Task task4 = new Task.Builder(4, "4").build(); // ocupa localdate.now y la due date ocupa plus 1
+    repo.save(task1);
+    repo.save(task2);
+    repo.save(task3);
+    repo.save(task4);
+    repo.completeTask(task1);
+    Task task = repo.searchById(1).get();
     assertEquals("DONE", task.getStatus());
   }
 
@@ -244,5 +253,32 @@ public class TaskRepositoryImplTest {
     repo.save(task);
     task = repo.undoneTask(task);
     assertEquals("TODO", task.getStatus());
+  }
+
+  @Test
+  @DisplayName("Undone task in memory")
+  void undoneTaskInMemory() {
+    Task task =
+        new Task.Builder(2, "2").type("PROGRAMMING").priority("HIGH").status("DONE").build();
+    repo.save(task);
+    repo.undoneTask(task);
+
+    task = repo.searchById(2).get();
+    assertEquals("TODO", task.getStatus());
+  }
+
+  @Test
+  @DisplayName("Test for delete task")
+  void deleteTask() {
+    Task task1 = new Task.Builder(1, "1").type("LIVE").priority("HIGH").status("DONE").build();
+    Task task2 =
+        new Task.Builder(2, "2").type("PROGRAMMING").priority("HIGH").status("DONE").build();
+    Task task3 = new Task.Builder(3, "3").type("UNIVERSITY").priority("LOW").status("TODO").build();
+    Task task4 = new Task.Builder(4, "4").type("LIVE").build();
+    repo.save(task1);
+    repo.save(task2);
+    repo.save(task3);
+    repo.save(task4);
+    assertTrue(repo.deleteTask(task1));
   }
 }

@@ -48,7 +48,10 @@ public class TaskRepositoryImpl implements TaskRepository {
 
   @Override
   public Task completeTask(Task task) {
-    return task.updateStatus("DONE");
+    deleteTask(task);
+    Task newTask = task.updateStatus("DONE");
+    taskList.add(newTask);
+    return newTask;
   }
 
   @Override
@@ -85,6 +88,14 @@ public class TaskRepositoryImpl implements TaskRepository {
 
   @Override
   public Task undoneTask(Task task) {
-    return task.updateStatus("TODO");
+    Task newTask = task.updateStatus("TODO");
+    deleteTask(task);
+    taskList.add(newTask);
+    return newTask;
+  }
+
+  @Override
+  public boolean deleteTask(Task task) {
+    return taskList.remove(task);
   }
 }

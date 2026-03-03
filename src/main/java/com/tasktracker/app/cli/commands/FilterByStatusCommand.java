@@ -1,4 +1,4 @@
-package com.tasktracker.app.cli;
+package com.tasktracker.app.cli.commands;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
@@ -26,7 +26,6 @@ public class FilterByStatusCommand implements TaskCommand {
     if (list.isEmpty()) {
       System.out.println("Empty list");
     } else {
-      // TODO: overwrite toString in task
       list.forEach(System.out::println);
     }
   }

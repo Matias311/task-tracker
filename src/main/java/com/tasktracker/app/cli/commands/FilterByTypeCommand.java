@@ -1,7 +1,8 @@
-package com.tasktracker.app.cli;
+package com.tasktracker.app.cli.commands;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
+import com.tasktracker.app.utils.VerifyData;
 import java.util.List;
 
 public class FilterByTypeCommand implements TaskCommand {
@@ -16,6 +17,10 @@ public class FilterByTypeCommand implements TaskCommand {
    * @param type String, PROGRAMMING, LIVE, UNIVERSITY
    */
   public FilterByTypeCommand(TaskService service, String type) {
+    if (service == null) {
+      throw new IllegalArgumentException("Service must have a value");
+    }
+    VerifyData.verifyString(type, "Type must have a value");
     this.service = service;
     this.type = type;
   }
@@ -26,7 +31,6 @@ public class FilterByTypeCommand implements TaskCommand {
     if (list.isEmpty()) {
       System.out.println("Empty list");
     } else {
-      // TODO: overwrite toString in task
       list.forEach(System.out::println);
     }
   }

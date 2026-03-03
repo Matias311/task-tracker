@@ -1,4 +1,4 @@
-package com.tasktracker.app.cli;
+package com.tasktracker.app.cli.commands;
 
 public interface TaskCommand {
 
