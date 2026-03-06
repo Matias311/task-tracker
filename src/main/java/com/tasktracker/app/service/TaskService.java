@@ -5,6 +5,7 @@ import com.tasktracker.app.domain.TaskPriority;
 import com.tasktracker.app.domain.TaskStatus;
 import com.tasktracker.app.domain.TaskType;
 import com.tasktracker.app.repository.TaskRepository;
+import com.tasktracker.app.repository.observer.Observer;
 import com.tasktracker.app.utils.VerifyData;
 import java.time.LocalDate;
 import java.util.List;
@@ -13,14 +14,16 @@ import java.util.Optional;
 public class TaskService {
 
   private TaskRepository repo;
+  private Observer observer;
 
   /**
    * Constructor, you must pass the repository.
    *
    * @param repo TaskRepository
    */
-  public TaskService(TaskRepository repo) {
+  public TaskService(TaskRepository repo, Observer observer) {
     this.repo = repo;
+    this.observer = observer;
   }
 
   /**
@@ -74,6 +77,8 @@ public class TaskService {
             .dueDate(taskDueDate)
             .build();
     repo.save(task);
+
+    observer.update(task, "SAVE");
   }
 
   /**
@@ -135,6 +140,7 @@ public class TaskService {
       throw new IllegalStateException("The task is already in TODO status");
     }
 
+    observer.update(task, "COMPLETE TASK");
     return repo.completeTask(task);
   }
 
@@ -191,6 +197,7 @@ public class TaskService {
     if (task.getStatus().equals("TODO")) {
       throw new IllegalStateException("The task is already in TODO status");
     }
+    observer.update(task, "UNDONE");
     return repo.undoneTask(task);
   }
 
@@ -204,6 +211,7 @@ public class TaskService {
     if (task == null) {
       throw new IllegalArgumentException("Invalid task");
     }
+    observer.update(task, "DELETE");
     return repo.deleteTask(task);
   }
 }

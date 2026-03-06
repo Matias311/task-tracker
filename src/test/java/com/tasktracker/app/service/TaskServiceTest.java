@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
+import com.tasktracker.app.repository.observer.AudditLogger;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +22,7 @@ public class TaskServiceTest {
 
   @BeforeEach
   void setUp() {
-    this.service = new TaskService(new TaskRepositoryImpl());
+    this.service = new TaskService(new TaskRepositoryImpl(), new AudditLogger());
   }
 
   @Test
