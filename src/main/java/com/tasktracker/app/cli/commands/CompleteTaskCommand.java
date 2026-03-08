@@ -3,7 +3,6 @@ package com.tasktracker.app.cli.commands;
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import com.tasktracker.app.utils.VerifyData;
-import java.util.Optional;
 
 public class CompleteTaskCommand implements TaskCommand {
 
@@ -21,8 +20,8 @@ public class CompleteTaskCommand implements TaskCommand {
 
   @Override
   public void execute() {
-    Optional<Task> task = service.searchTaskById(id);
-    task.ifPresentOrElse(
-        t -> service.completeTask(t), () -> System.out.println("Didn't find the task"));
+    Task task = service.searchTaskById(id);
+    service.completeTask(task);
+    System.out.println("Now the status in the task with the id: " + id + " is DONE");
   }
 }

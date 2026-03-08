@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
+import com.tasktracker.app.repository.observer.AudditLogger;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +22,7 @@ public class TaskServiceTest {
 
   @BeforeEach
   void setUp() {
-    this.service = new TaskService(new TaskRepositoryImpl());
+    this.service = new TaskService(new TaskRepositoryImpl(), new AudditLogger());
   }
 
   @Test
@@ -138,7 +139,7 @@ public class TaskServiceTest {
   @DisplayName("Search by id")
   void searchTaskById() {
     service.saveTask(42341, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
-    assertEquals(42341, service.searchTaskById(42341).get().getId());
+    assertEquals(42341, service.searchTaskById(42341).getId());
   }
 
   @Test
@@ -153,9 +154,9 @@ public class TaskServiceTest {
   @DisplayName("Undone task")
   void undoneTask() {
     service.saveTask(42341, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
-    Task task = service.searchTaskById(42341).get();
+    Task task = service.searchTaskById(42341);
     service.undoneTask(task);
-    assertEquals("TODO", service.searchTaskById(42341).get().getStatus());
+    assertEquals("TODO", service.searchTaskById(42341).getStatus());
   }
 
   @ParameterizedTest
@@ -178,7 +179,7 @@ public class TaskServiceTest {
   @DisplayName("Delete task")
   void deleteTask() {
     service.saveTask(1, "Test", "", "", "", "", "", "");
-    Task task = service.searchTaskById(1).get();
+    Task task = service.searchTaskById(1);
     assertTrue(service.deleteTask(task));
   }
 

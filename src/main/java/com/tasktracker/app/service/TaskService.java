@@ -1,26 +1,29 @@
 package com.tasktracker.app.service;
 
+import com.tasktracker.app.Exception.NotFoundException;
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.domain.TaskPriority;
 import com.tasktracker.app.domain.TaskStatus;
 import com.tasktracker.app.domain.TaskType;
 import com.tasktracker.app.repository.TaskRepository;
+import com.tasktracker.app.repository.observer.Observer;
 import com.tasktracker.app.utils.VerifyData;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public class TaskService {
 
   private TaskRepository repo;
+  private Observer observer;
 
   /**
    * Constructor, you must pass the repository.
    *
    * @param repo TaskRepository
    */
-  public TaskService(TaskRepository repo) {
+  public TaskService(TaskRepository repo, Observer observer) {
     this.repo = repo;
+    this.observer = observer;
   }
 
   /**
@@ -74,6 +77,8 @@ public class TaskService {
             .dueDate(taskDueDate)
             .build();
     repo.save(task);
+
+    observer.update(task, "SAVE");
   }
 
   /**
@@ -135,7 +140,11 @@ public class TaskService {
       throw new IllegalStateException("The task is already in TODO status");
     }
 
-    return repo.completeTask(task);
+    Task newTask = repo.completeTask(task);
+    if (newTask != null) {
+      observer.update(task, "COMPLETE TASK");
+    }
+    return newTask;
   }
 
   /**
@@ -162,9 +171,10 @@ public class TaskService {
    * @param id int if the id is < 0 throw IllegalArgumentException
    * @return Optional of Task
    */
-  public Optional<Task> searchTaskById(int id) {
+  public Task searchTaskById(int id) {
     VerifyData.verifyInt(id, "Invalid id");
-    return repo.searchById(id);
+    return repo.searchById(id)
+        .orElseThrow(() -> new NotFoundException("Task with id: " + id + " not found"));
   }
 
   /**
@@ -191,7 +201,11 @@ public class TaskService {
     if (task.getStatus().equals("TODO")) {
       throw new IllegalStateException("The task is already in TODO status");
     }
-    return repo.undoneTask(task);
+    Task newTask = repo.undoneTask(task);
+    if (newTask != null) {
+      observer.update(task, "UNDONE");
+    }
+    return newTask;
   }
 
   /**
@@ -204,6 +218,10 @@ public class TaskService {
     if (task == null) {
       throw new IllegalArgumentException("Invalid task");
     }
-    return repo.deleteTask(task);
+    boolean result = repo.deleteTask(task);
+    if (result) {
+      observer.update(task, "DELETE");
+    }
+    return result;
   }
 }

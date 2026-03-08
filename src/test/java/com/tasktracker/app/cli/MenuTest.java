@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.repository.TaskRepositoryImpl;
+import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.service.TaskService;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -26,7 +27,9 @@ public class MenuTest {
     Exception ex =
         assertThrows(
             IllegalArgumentException.class,
-            () -> Menu.of(in, System.out, new TaskService(new TaskRepositoryImpl())));
+            () ->
+                Menu.of(
+                    in, System.out, new TaskService(new TaskRepositoryImpl(), new AudditLogger())));
     assertEquals("InputStream, PrintStream and TaskService must have a value", ex.getMessage());
   }
 
@@ -37,7 +40,9 @@ public class MenuTest {
     Exception ex =
         assertThrows(
             IllegalArgumentException.class,
-            () -> Menu.of(System.in, out, new TaskService(new TaskRepositoryImpl())));
+            () ->
+                Menu.of(
+                    System.in, out, new TaskService(new TaskRepositoryImpl(), new AudditLogger())));
     assertEquals("InputStream, PrintStream and TaskService must have a value", ex.getMessage());
   }
 
@@ -55,7 +60,8 @@ public class MenuTest {
   void verifyMenuSelectionUser() {
     ByteArrayInputStream in = new ByteArrayInputStream("13\n".getBytes());
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    Menu.of(in, new PrintStream(out), new TaskService(new TaskRepositoryImpl())).start();
+    Menu.of(in, new PrintStream(out), new TaskService(new TaskRepositoryImpl(), new AudditLogger()))
+        .start();
     String result = out.toString();
     assertAll(
         () -> assertTrue(result.contains("Welcome to the task manager!")),
@@ -80,7 +86,8 @@ public class MenuTest {
   void selectionUserBadInput() {
     ByteArrayInputStream in = new ByteArrayInputStream("SISIS\n13\n".getBytes());
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    Menu.of(in, new PrintStream(out), new TaskService(new TaskRepositoryImpl())).start();
+    Menu.of(in, new PrintStream(out), new TaskService(new TaskRepositoryImpl(), new AudditLogger()))
+        .start();
     String result = out.toString();
     assertTrue(result.contains("Invalid option, must be a number. Write a new option:"));
   }
@@ -90,7 +97,8 @@ public class MenuTest {
   void startMethodInvalidOption() {
     ByteArrayInputStream in = new ByteArrayInputStream("23\n13\n".getBytes());
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    Menu.of(in, new PrintStream(out), new TaskService(new TaskRepositoryImpl())).start();
+    Menu.of(in, new PrintStream(out), new TaskService(new TaskRepositoryImpl(), new AudditLogger()))
+        .start();
     String result = out.toString();
     assertTrue(result.contains("Invalid option. Try again"));
   }

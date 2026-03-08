@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.tasktracker.app.repository.TaskRepositoryImpl;
+import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.service.TaskService;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class CommandTest {
 
   @BeforeEach
   void setUp() {
-    this.service = new TaskService(new TaskRepositoryImpl());
+    this.service = new TaskService(new TaskRepositoryImpl(), new AudditLogger());
   }
 
   @Test
