@@ -20,9 +20,6 @@ public class SearchByIdCommand implements TaskCommand {
 
   @Override
   public void execute() {
-    service
-        .searchTaskById(id)
-        .ifPresentOrElse(
-            t -> System.out.println(t), () -> System.out.println("Didn't find the task"));
+    System.out.println(service.searchTaskById(id).toString());
   }
 }

@@ -1,5 +1,6 @@
 package com.tasktracker.app.cli.commands;
 
+import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import com.tasktracker.app.utils.VerifyData;
 
@@ -20,9 +21,8 @@ public class UndoneTaskCommand implements TaskCommand {
 
   @Override
   public void execute() {
-    service
-        .searchTaskById(id)
-        .ifPresentOrElse(
-            t -> service.undoneTask(t), () -> System.out.println("Didn't find the task"));
+    Task task = service.searchTaskById(id);
+    service.undoneTask(task);
+    System.out.println("Task with id " + id + " is now TODO");
   }
 }
