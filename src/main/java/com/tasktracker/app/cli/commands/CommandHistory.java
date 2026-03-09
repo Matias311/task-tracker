@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/** This class represent the history, can execute the command and save it in order of execution. */
 public class CommandHistory {
 
   private final List<TaskCommand> history = new ArrayList<>();

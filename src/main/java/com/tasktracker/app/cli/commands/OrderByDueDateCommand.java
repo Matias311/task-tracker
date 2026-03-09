@@ -4,6 +4,7 @@ import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import java.util.List;
 
+/** This command represent the action of order by due date the task. */
 public class OrderByDueDateCommand implements TaskCommand {
 
   private TaskService service;
@@ -11,9 +12,12 @@ public class OrderByDueDateCommand implements TaskCommand {
   /**
    * Creates the order by due date command using TaskService.
    *
-   * @param service TaskService
+   * @param service TaskService, if its null throw IllegalArgumentException
    */
   public OrderByDueDateCommand(TaskService service) {
+    if (service == null) {
+      throw new IllegalArgumentException("The service must have a value");
+    }
     this.service = service;
   }
 

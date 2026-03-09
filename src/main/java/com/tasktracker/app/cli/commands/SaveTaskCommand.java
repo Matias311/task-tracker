@@ -4,6 +4,7 @@ import com.tasktracker.app.service.TaskService;
 import com.tasktracker.app.utils.VerifyData;
 import java.util.List;
 
+/** This command represent the action of saving a task. */
 public class SaveTaskCommand implements TaskCommand {
 
   private TaskService service;

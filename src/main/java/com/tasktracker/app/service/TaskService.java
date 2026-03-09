@@ -6,20 +6,34 @@ import com.tasktracker.app.domain.TaskPriority;
 import com.tasktracker.app.domain.TaskStatus;
 import com.tasktracker.app.domain.TaskType;
 import com.tasktracker.app.repository.TaskRepository;
+import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.repository.observer.Observer;
 import com.tasktracker.app.utils.VerifyData;
 import java.time.LocalDate;
 import java.util.List;
 
-public class TaskService {
+/**
+ * Service responsible for managing {@link Task} instances.
+ *
+ * <p>This service provides operations to create, retrieve, update, filter, order and delete tasks.
+ * All persistence operations are delegated to a {@link TaskRepository} implementation.
+ *
+ * <p>An {@link Observer} is used to audit task-related operations such as creation, completion and
+ * deletion.
+ *
+ * <p>This class is stateless and acts as the application layer coordinating validation, repository
+ * access and audit logging.
+ */
+public final class TaskService {
 
   private TaskRepository repo;
   private Observer observer;
 
   /**
-   * Constructor, you must pass the repository.
+   * Constructor, you must pass the repository and Observer.
    *
    * @param repo TaskRepository
+   * @param observer Observer
    */
   public TaskService(TaskRepository repo, Observer observer) {
     this.repo = repo;
@@ -27,16 +41,20 @@ public class TaskService {
   }
 
   /**
-   * Saves the task in memory.
+   * Creates and stores a new task.
    *
-   * @param id int must be > 0 or throw IllegalArgumentException
-   * @param title String must have a value or throw IllegalArgumentException
-   * @param type String
-   * @param description String
-   * @param priority String
-   * @param status String
-   * @param date String
-   * @param dueDate String
+   * <p>The task data is validated before being persisted. If the task is successfully saved, the
+   * corresponding audit event is sent to the configured {@link Observer}.
+   *
+   * @param id unique identifier of the task, must be greater than zero
+   * @param title title of the task, must not be null or empty
+   * @param type type of the task
+   * @param description optional description
+   * @param priority priority level of the task
+   * @param status initial status of the task
+   * @param date creation date in {@code yyyy-MM-dd} format
+   * @param dueDate due date in {@code yyyy-MM-dd} format
+   * @throws IllegalArgumentException if the id is not positive or the title is invalid
    */
   public void saveTask(
       int id,
@@ -93,8 +111,9 @@ public class TaskService {
   /**
    * Filter the task list by type of task, the types are: PROGRAMMING, LIVE, UNIVERSITY.
    *
-   * @param type String is the type of the task, if is invalid throw IllegalArgumentException
+   * @param type String is the type of the task
    * @return List of task with that type or empty task
+   * @throws IllegalArgumentException if you pass a incorrect type
    */
   public List<Task> filterByTypeTask(String type) {
     VerifyData.verifyEnum(type, TaskType.class, "The status task is invalid");
@@ -104,9 +123,9 @@ public class TaskService {
   /**
    * Filter the task list by the priority, the priority are: HIGH, MEDIUM, LOW.
    *
-   * @param priority String is the priority of the task, if is invalid throw
-   *     IllegalArgumentException
+   * @param priority String is the priority of the task,
    * @return List of task with that priority or empty task
+   * @throws IllegalArgumentException if its invalid the priority
    */
   public List<Task> filterByPriorityTask(String priority) {
     VerifyData.verifyEnum(priority, TaskPriority.class, "The priority task is invalid");
@@ -116,8 +135,9 @@ public class TaskService {
   /**
    * Filter the task list by the status, the status are: todo, doign, done.
    *
-   * @param status String is the status of the task, if is invalid throw IllegalArgumentException
+   * @param status String is the status of the task
    * @return List of task with that status or empty task
+   * @throws IllegalArgumentException if its invalid the status
    */
   public List<Task> filterByStatusTask(String status) {
     VerifyData.verifyEnum(status, TaskStatus.class, "The status task is invalid");
@@ -125,11 +145,13 @@ public class TaskService {
   }
 
   /**
-   * Complete a task.
+   * Update the status of a task when its todo or doing. Also use the observer to save the action
    *
-   * @param task Task, if you pass a invalid task (null one) throw IllegalArgumentException, if the
-   *     task is already in DONE status throw IllegalStateException
-   * @return Task
+   * @param task Task to update
+   * @return Task the new Task with the new Update
+   * @throws IllegalArgumentException when you pass a null task
+   * @throws IllegalStateException when the task is DONE
+   * @see AudditLogger
    */
   public Task completeTask(Task task) {
     if (task == null) {
@@ -148,7 +170,7 @@ public class TaskService {
   }
 
   /**
-   * Order the task list by due date.
+   * Order the task list by due date. to order the task uses
    *
    * @return List of task if its empty return empty list
    */
@@ -166,10 +188,12 @@ public class TaskService {
   }
 
   /**
-   * Search task by id, if doesnt find it return a empty Optional.
+   * Retrieves a task by its identifier.
    *
-   * @param id int if the id is < 0 throw IllegalArgumentException
-   * @return Optional of Task
+   * @param id identifier of the task, must be greater than zero
+   * @return the task associated with the given id
+   * @throws IllegalArgumentException if the id is invalid
+   * @throws NotFoundException if no task exists with the given id
    */
   public Task searchTaskById(int id) {
     VerifyData.verifyInt(id, "Invalid id");
@@ -178,20 +202,21 @@ public class TaskService {
   }
 
   /**
-   * Get all the task that are complete.
+   * Get all the task that are complete. if the list in memory is empty just return a empty list.
    *
-   * @return List of task, if the task list is empty return a empty list
+   * @return List of task
    */
   public List<Task> getAllTaskThatAreComplete() {
     return repo.getAllTaskComplete();
   }
 
   /**
-   * Undone a task, if the task is null throw IllegalArgumentException, if the Task is complete
-   * throw IllegalStateException.
+   * Undone a task, the task can not be in todo status and it cant be null.
    *
-   * @param task Task
-   * @return Task
+   * @param task Task to update the status to todo
+   * @return Task the new task
+   * @throws IllegalArgumentException if the task is null
+   * @throws IllegalStateException if the task status is todo already
    */
   public Task undoneTask(Task task) {
     if (task == null) {
@@ -211,8 +236,9 @@ public class TaskService {
   /**
    * Delete a task, if its doesnt in memory return false, if its delete return true.
    *
-   * @param task Task, if you pass a null task throw IllegalArgumentException
-   * @return Boolean
+   * @param task Task to delete
+   * @return Boolean true if its deleted, false if is not
+   * @throws IllegalArgumentException if the task is null
    */
   public boolean deleteTask(Task task) {
     if (task == null) {

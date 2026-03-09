@@ -1,15 +1,19 @@
 package com.tasktracker.app.utils;
 
-public class VerifyData {
+/**
+ * This class is use to verify data. The class contains static method to check null, int, enum and
+ * throw IllegalArgument when not pass the type verifycation.
+ */
+public final class VerifyData {
 
   /**
-   * Verify if a int is > 0. If is less than throw IllegalArgumentException.
+   * Verify if a int is <= 0. If is less than throw IllegalArgumentException.
    *
    * @param i int
    * @param m String
    */
-  public static void verifyInt(int i, String m) {
-    if (i < 0) {
+  public static final void verifyInt(int i, String m) {
+    if (i <= 0) {
       throw new IllegalArgumentException(m);
     }
   }
@@ -20,7 +24,7 @@ public class VerifyData {
    * @param i String
    * @param m String (message of the error)
    */
-  public static void verifyString(String i, String m) {
+  public static final void verifyString(String i, String m) {
     if (i == null || i.isBlank()) {
       throw new IllegalArgumentException(m);
     }
@@ -34,7 +38,7 @@ public class VerifyData {
    * @param value String
    * @param m Message of error
    */
-  public static <E extends Enum<E>> void verifyEnum(String value, Class<E> data, String m) {
+  public static final <E extends Enum<E>> void verifyEnum(String value, Class<E> data, String m) {
     try {
       Enum.valueOf(data, value);
     } catch (IllegalArgumentException e) {
@@ -51,7 +55,7 @@ public class VerifyData {
    * @param data String
    * @return String
    */
-  public static String verifyStringForCli(String data) {
+  public static final String verifyStringForCli(String data) {
     return data == null || data.isBlank() ? null : data;
   }
 }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/** This class creates the menu, have the diferent options that a user can use. */
 public class Menu {
   private final Scanner in;
   private final PrintStream out;
