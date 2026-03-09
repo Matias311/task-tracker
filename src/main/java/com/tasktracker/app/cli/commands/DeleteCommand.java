@@ -4,10 +4,17 @@ import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import com.tasktracker.app.utils.VerifyData;
 
+/** This delte task command represent the action of deleting a task. */
 public class DeleteCommand implements TaskCommand {
   private TaskService service;
   private int id;
 
+  /**
+   * Constructor of the delete task command, checks the values.
+   *
+   * @param service TaskService if its null throw IllegalArgumentException
+   * @param id int if the id is <= 0 throw IllegalArgumentException
+   */
   public DeleteCommand(TaskService service, int id) {
     if (service == null) {
       throw new IllegalArgumentException("Service must have a value");

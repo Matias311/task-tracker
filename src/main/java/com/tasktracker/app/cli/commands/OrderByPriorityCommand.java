@@ -4,6 +4,7 @@ import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import java.util.List;
 
+/** This command represent the action of order by priority the task. */
 public class OrderByPriorityCommand implements TaskCommand {
 
   private TaskService service;
@@ -11,9 +12,12 @@ public class OrderByPriorityCommand implements TaskCommand {
   /**
    * Creates the order by priority command using TaskService.
    *
-   * @param service TaskService
+   * @param service TaskService, if its null throw IllegalArgumentException
    */
   public OrderByPriorityCommand(TaskService service) {
+    if (service == null) {
+      throw new IllegalArgumentException("The service must have a value");
+    }
     this.service = service;
   }
 

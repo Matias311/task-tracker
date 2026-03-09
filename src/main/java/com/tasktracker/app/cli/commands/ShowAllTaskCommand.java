@@ -4,6 +4,7 @@ import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
 import java.util.List;
 
+/** This command represent the action of showing all the task. */
 public class ShowAllTaskCommand implements TaskCommand {
 
   private TaskService service;
@@ -11,9 +12,12 @@ public class ShowAllTaskCommand implements TaskCommand {
   /**
    * Creates the command using the service to get all the task.
    *
-   * @param service TaskService
+   * @param service TaskService, if its null throw IllegalArgumentException
    */
   public ShowAllTaskCommand(TaskService service) {
+    if (service == null) {
+      throw new IllegalArgumentException("The service must have a value");
+    }
     this.service = service;
   }
 

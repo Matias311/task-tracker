@@ -3,7 +3,7 @@ package com.tasktracker.app.domain;
 import com.tasktracker.app.utils.VerifyData;
 import java.time.LocalDate;
 
-/** Task. */
+/** This class represent a task model, the task have two obligatory values, the id and title. */
 public class Task {
 
   private final int id;
