@@ -1,44 +1,69 @@
 package com.tasktracker.app.cli.commands;
 
+import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.service.TaskService;
-import com.tasktracker.app.utils.VerifyData;
-import java.util.List;
+import java.time.LocalDate;
 
 /** This command represent the action of saving a task. */
 public class SaveTaskCommand implements TaskCommand {
 
   private TaskService service;
-  private List<String> data;
   private int id;
+  private String title;
+  private String type;
+  private String description;
+  private String priority;
+  private String status;
+  private LocalDate date;
+  private LocalDate dueDate;
 
   /**
-   * Creates a Command to save a task.
+   * Creates a save task command, save the data to the task.
    *
-   * @param service TaskService
-   * @param id int, id of the task
-   * @param data the data is a List of string, contain: title, type, description, priority, status,
-   *     date, dueDate in that exact order
+   * @param service TaskService, if its null throo IllegalArgumentException
+   * @param id int, the id of a task
+   * @param title String, the name/title to the task
+   * @param type type of the task
+   * @param description optional description
+   * @param priority priority level of the task
+   * @param status initial status of the task
+   * @param date LocalDate when creates the task
+   * @param dueDate LocalDate, represent the due date of a task
    */
-  public SaveTaskCommand(TaskService service, int id, List<String> data) {
-    if (service == null || data == null || data.isEmpty()) {
+  public SaveTaskCommand(
+      TaskService service,
+      int id,
+      String title,
+      String type,
+      String description,
+      String priority,
+      String status,
+      LocalDate date,
+      LocalDate dueDate) {
+    if (service == null) {
       throw new IllegalArgumentException("The service or data must have a value");
     }
     this.service = service;
-    this.data = data;
-    VerifyData.verifyInt(id, "The id must be > 0");
     this.id = id;
+    this.title = title;
+    this.type = type;
+    this.description = description;
+    this.priority = priority;
+    this.status = status;
+    this.date = date;
+    this.dueDate = dueDate;
   }
 
   @Override
   public void execute() {
     service.saveTask(
-        id,
-        data.get(0),
-        data.get(1),
-        data.get(2),
-        data.get(3),
-        data.get(4),
-        data.get(5),
-        data.get(6));
+        new Task.Builder(id, title)
+            .type(type)
+            .description(description)
+            .priority(priority)
+            .status(status)
+            .date(date)
+            .dueDate(dueDate)
+            .build());
   }
 }

@@ -10,7 +10,7 @@ public enum ConnectionJdbc {
   INSTANCE;
   private DataSource dataSource;
 
-  private ConnectionJdbc() {
+  ConnectionJdbc() {
     PGSimpleDataSource ds = new PGSimpleDataSource();
     ds.setServerNames(new String[] {System.getenv("POSTGRES_HOST")});
     ds.setDatabaseName(System.getenv("POSTGRES_DB"));
@@ -25,7 +25,13 @@ public enum ConnectionJdbc {
    * @return Connection for postgresql
    * @throws SQLException if can not connect to Posgresql
    */
-  public Connection getConnection() throws SQLException {
-    return dataSource.getConnection();
+  public Connection getConnection() {
+    Connection con = null;
+    try {
+      con = dataSource.getConnection();
+    } catch (Exception e) {
+      System.out.println("Error to create the connection to the database");
+    }
+    return con;
   }
 }

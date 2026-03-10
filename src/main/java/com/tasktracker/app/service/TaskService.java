@@ -9,7 +9,6 @@ import com.tasktracker.app.repository.TaskRepository;
 import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.repository.observer.Observer;
 import com.tasktracker.app.utils.VerifyData;
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -46,54 +45,14 @@ public final class TaskService {
    * <p>The task data is validated before being persisted. If the task is successfully saved, the
    * corresponding audit event is sent to the configured {@link Observer}.
    *
-   * @param id unique identifier of the task, must be greater than zero
-   * @param title title of the task, must not be null or empty
-   * @param type type of the task
-   * @param description optional description
-   * @param priority priority level of the task
-   * @param status initial status of the task
-   * @param date creation date in {@code yyyy-MM-dd} format
-   * @param dueDate due date in {@code yyyy-MM-dd} format
+   * @param Task is the task to save, before is save we verify the values
    * @throws IllegalArgumentException if the id is not positive or the title is invalid
    */
-  public void saveTask(
-      int id,
-      String title,
-      String type,
-      String description,
-      String priority,
-      String status,
-      String date,
-      String dueDate) {
+  public void saveTask(Task task) {
 
-    VerifyData.verifyInt(id, "ID must be > 0");
-    VerifyData.verifyString(title, "Title must have a value");
+    VerifyData.verifyInt(task.getId(), "ID must be > 0");
+    VerifyData.verifyString(task.getTitle(), "Title must have a value");
 
-    type = VerifyData.verifyStringForCli(type);
-    description = VerifyData.verifyStringForCli(description);
-    priority = VerifyData.verifyStringForCli(priority);
-    status = VerifyData.verifyStringForCli(status);
-
-    // regex to veryfy structure date yyyy-MM-dd
-    LocalDate taskdate = null;
-    if (date.matches("^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$")) {
-      taskdate = LocalDate.parse(date);
-    }
-
-    LocalDate taskDueDate = null;
-    if (dueDate.matches("^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$")) {
-      taskDueDate = LocalDate.parse(dueDate);
-    }
-
-    Task task =
-        new Task.Builder(id, title)
-            .type(type)
-            .description(description)
-            .priority(priority)
-            .status(status)
-            .date(taskdate)
-            .dueDate(taskDueDate)
-            .build();
     repo.save(task);
 
     observer.update(task, "SAVE");
@@ -159,7 +118,7 @@ public final class TaskService {
     }
 
     if (task.getStatus().equals("DONE")) {
-      throw new IllegalStateException("The task is already in TODO status");
+      throw new IllegalStateException("The task is already in DONE status");
     }
 
     Task newTask = repo.completeTask(task);

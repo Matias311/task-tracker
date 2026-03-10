@@ -1,5 +1,6 @@
 package com.tasktracker.app.repository.observer;
 
+import com.tasktracker.app.domain.Event;
 import com.tasktracker.app.domain.Task;
 import java.util.ArrayList;
 import java.util.List;
