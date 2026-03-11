@@ -12,10 +12,10 @@ CREATE TABLE tasks
 
 CREATE TABLE audit_task
 (
-    id             SERIAL  PRIMARY KEY,
-    id_task        INT     REFERENCES tasks(id),
+    id             SERIAL    PRIMARY KEY,
+    id_task        INT       REFERENCES tasks(id),
     action         VARCHAR,
     task_title     VARCHAR,
-    execution_date DATE
+    execution_date TIMESTAMP
 );
 

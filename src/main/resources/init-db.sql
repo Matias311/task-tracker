@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS tasks
+CREATE TABLE
+IF NOT EXISTS tasks
 (
     id          INT     PRIMARY KEY,
     title       VARCHAR NOT NULL,
@@ -10,11 +11,13 @@ CREATE TABLE IF NOT EXISTS tasks
     due_date    DATE
 );
 
-CREATE TABLE IF NOT EXISTS audit_task
+CREATE TABLE
+IF NOT EXISTS audit_task
 (
     id             SERIAL  PRIMARY KEY,
-    id_task        INT     REFERENCES tasks(id),
+    id_task        INT     REFERENCES tasks
+(id),
     action         VARCHAR,
     task_title     VARCHAR,
-    execution_date DATE
+    execution_date TIMESTAMP
 );
