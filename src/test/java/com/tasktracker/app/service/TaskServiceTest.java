@@ -28,15 +28,16 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Create a task with the id and title, the rest is empty value")
   void saveTaskWithTitleId() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
     assertEquals("Test", service.getAllTask().get(0).getTitle());
   }
 
   @Test
   @DisplayName("Get all the saved task")
   void getAllTask() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test", "PROGRAMMING", "Test task", "", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test").type("PROGRAMMING").description("Test task").build());
     List<Task> list = service.getAllTask();
     assertAll(
         () -> assertEquals(2, list.size()),
@@ -47,8 +48,9 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Filter task by type")
   void filterByType() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test2").type("PROGRAMMING").description("Test task").build());
     List<Task> list = service.filterByTypeTask("PROGRAMMING");
     assertEquals("Test2", list.get(0).getTitle());
   }
@@ -56,8 +58,9 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Filter task by type with invalid type")
   void filterWithInvalidType() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test2").type("PROGRAMMING").description("Test task").build());
     Exception ex =
         assertThrows(IllegalArgumentException.class, () -> service.filterByTypeTask("SISI"));
     assertEquals("The status task is invalid", ex.getMessage());
@@ -66,8 +69,13 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Filter task by priority")
   void filterByPriority() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "HIGH", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test2")
+            .type("PROGRAMMING")
+            .description("Test task")
+            .priority("HIGH")
+            .build());
     List<Task> list = service.filterByPriorityTask("HIGH");
     assertEquals("Test2", list.get(0).getTitle());
   }
@@ -75,8 +83,13 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Filter task by type with invalid priority")
   void filterWithInvalidPriority() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "HIGH", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test2")
+            .type("PROGRAMMING")
+            .description("Test task")
+            .priority("HIGH")
+            .build());
     Exception ex =
         assertThrows(IllegalArgumentException.class, () -> service.filterByPriorityTask("SISI"));
     assertEquals("The priority task is invalid", ex.getMessage());
@@ -85,8 +98,15 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Filter task by status")
   void filterByStatus() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test2")
+            .type("PROGRAMMING")
+            .description("Test task")
+            .priority("HIGH")
+            .status("DONE")
+            .build());
+
     List<Task> list = service.filterByStatusTask("DONE");
     assertEquals("Test2", list.get(0).getTitle());
   }
@@ -94,8 +114,15 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Filter task by type with invalid status")
   void filterWithInvalidStatus() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
-    service.saveTask(2, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
+    service.saveTask(
+        new Task.Builder(2, "Test2")
+            .type("PROGRAMMING")
+            .description("Test task")
+            .priority("HIGH")
+            .status("DONE")
+            .build());
+
     Exception ex =
         assertThrows(IllegalArgumentException.class, () -> service.filterByStatusTask("SISI"));
     assertEquals("The status task is invalid", ex.getMessage());
@@ -104,14 +131,18 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Complete task")
   void completeTask() {
-    Task task = service.completeTask(new Task.Builder(1, "Test").build());
-    assertEquals("DONE", task.getStatus());
+    Task task = new Task.Builder(1, "Test").build();
+    service.saveTask(task);
+    service.completeTask(task);
+
+    Task newtask = service.searchTaskById(1);
+    assertEquals("DONE", newtask.getStatus());
   }
 
   @Test
   @DisplayName("Complete task verify in memory the update")
   void completeTaskInMemory() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
 
     List<Task> list = service.getAllTask();
     service.completeTask(list.get(0));
@@ -132,13 +163,19 @@ public class TaskServiceTest {
         assertThrows(
             IllegalStateException.class,
             () -> service.completeTask(new Task.Builder(1, "Test").status("DONE").build()));
-    assertEquals("The task is already in TODO status", ex.getMessage());
+    assertEquals("The task is already in DONE status", ex.getMessage());
   }
 
   @Test
   @DisplayName("Search by id")
   void searchTaskById() {
-    service.saveTask(42341, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    service.saveTask(
+        new Task.Builder(42341, "Test2")
+            .type("PROGRAMMING")
+            .description("Test task")
+            .priority("HIGH")
+            .status("DONE")
+            .build());
     assertEquals(42341, service.searchTaskById(42341).getId());
   }
 
@@ -153,7 +190,13 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Undone task")
   void undoneTask() {
-    service.saveTask(42341, "Test2", "PROGRAMMING", "Test task", "HIGH", "DONE", "", "");
+    service.saveTask(
+        new Task.Builder(42341, "Test2")
+            .type("PROGRAMMING")
+            .description("Test task")
+            .priority("HIGH")
+            .status("DONE")
+            .build());
     Task task = service.searchTaskById(42341);
     service.undoneTask(task);
     assertEquals("TODO", service.searchTaskById(42341).getStatus());
@@ -178,7 +221,7 @@ public class TaskServiceTest {
   @Test
   @DisplayName("Delete task")
   void deleteTask() {
-    service.saveTask(1, "Test", "", "", "", "", "", "");
+    service.saveTask(new Task.Builder(1, "Test").build());
     Task task = service.searchTaskById(1);
     assertTrue(service.deleteTask(task));
   }

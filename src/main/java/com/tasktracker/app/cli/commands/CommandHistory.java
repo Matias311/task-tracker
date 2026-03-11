@@ -1,5 +1,6 @@
 package com.tasktracker.app.cli.commands;
 
+import com.tasktracker.app.exception.PersistenceException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,8 +20,12 @@ public class CommandHistory {
     if (command == null) {
       throw new IllegalArgumentException("Invalid command");
     }
-    command.execute();
-    history.add(command);
+    try {
+      command.execute();
+      history.add(command);
+    } catch (PersistenceException ex) {
+      System.out.println(ex);
+    }
   }
 
   /**

@@ -251,8 +251,8 @@ public class TaskRepositoryImplTest {
     Task task =
         new Task.Builder(2, "2").type("PROGRAMMING").priority("HIGH").status("DONE").build();
     repo.save(task);
-    task = repo.undoneTask(task);
-    assertEquals("TODO", task.getStatus());
+    boolean result = repo.undoneTask(task);
+    assertTrue(result);
   }
 
   @Test

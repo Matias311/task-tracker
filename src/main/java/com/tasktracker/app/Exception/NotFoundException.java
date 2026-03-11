@@ -1,4 +1,4 @@
-package com.tasktracker.app.Exception;
+package com.tasktracker.app.exception;
 
 /**
  * Exception thrown when an expected entity cannot be found.

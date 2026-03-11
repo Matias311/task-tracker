@@ -11,8 +11,9 @@ public interface TaskRepository {
    * Save a task in memory.
    *
    * @param task Task
+   * @return true if its save, false if doesnt
    */
-  void save(Task task);
+  boolean save(Task task);
 
   /**
    * Get all the Task in memory, if you call it and is empty, return a empty list.
@@ -49,9 +50,9 @@ public interface TaskRepository {
    * Change the status of a task (ex: todo -> done).
    *
    * @param task Task
-   * @return Task return a new task (copy)
+   * @return true if the task is update to complete or false if the task doesnt change
    */
-  Task completeTask(Task task);
+  boolean completeTask(Task task);
 
   /**
    * Order the task by the due date (desc).
@@ -78,8 +79,9 @@ public interface TaskRepository {
    * Undone a task (change the status to todo ).
    *
    * @param task Task
+   * @return true if its undone the task, false if it doesn't
    */
-  Task undoneTask(Task task);
+  boolean undoneTask(Task task);
 
   /**
    * Search a task by id.

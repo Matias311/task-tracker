@@ -16,8 +16,7 @@ import com.tasktracker.app.cli.commands.UndoneTaskCommand;
 import com.tasktracker.app.service.TaskService;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 /** This class creates the menu, have the diferent options that a user can use. */
@@ -57,20 +56,28 @@ public class Menu {
           out.println("Save task\nThe id and title must have value, else is optional");
 
           int id = inId("Task id: ");
-          List<String> data = new ArrayList<>();
-          data.add(inString("Task title: ", true));
-          data.add(inString("Task type:\n- PROGRAMMING\n- UNIVERSITY\n- LIVE ", false));
-          data.add(inString("Task description: ", false));
-          data.add(inString("Task priority:\n- HIGH\n- MEDIUM\n- LOW", false));
-          data.add(inString("Task status:\n- TODO\n- DOING\n- DONE", false));
-          data.add(inString("Task date (Must follow this pattern YYYY-MM-DD", false));
-          data.add(
-              inString(
-                  "Task due date (Must follow this pattern YYYY-MM-DD and must be after task"
-                      + " date)",
-                  false));
+          String title = inString("Task title: ", true);
+          String type =
+              verifyStringForCli(
+                  inString("Task type:\n- PROGRAMMING\n- UNIVERSITY\n- LIVE ", false));
+          String description = verifyStringForCli(inString("Task description: ", false));
+          String priority =
+              verifyStringForCli(inString("Task priority:\n- HIGH\n- MEDIUM\n- LOW", false));
+          String status =
+              verifyStringForCli(inString("Task status:\n- TODO\n- DOING\n- DONE", false));
 
-          control.execute(new SaveTaskCommand(service, id, data));
+          LocalDate date =
+              parseDate(inString("Task date (Must follow this pattern YYYY-MM-DD", false));
+          LocalDate dueDate =
+              parseDate(
+                  inString(
+                      "Task due date (Must follow this pattern YYYY-MM-DD and must be after task"
+                          + " date)",
+                      false));
+
+          control.execute(
+              new SaveTaskCommand(
+                  service, id, title, type, description, priority, status, date, dueDate));
           break;
         case 2:
           control.execute(new ShowAllTaskCommand(service));
@@ -150,6 +157,13 @@ public class Menu {
     return in.nextInt();
   }
 
+  /**
+   * Output a message and get the input value of the user.
+   *
+   * @param m is the message to the user
+   * @param f is the flag to check if the input is a valid string
+   * @return string is the input of the user
+   */
   private String inString(String m, boolean f) {
     String userIn;
     out.println(m);
@@ -165,13 +179,43 @@ public class Menu {
     return userIn;
   }
 
+  /**
+   * Show the m param to get a int value, if the value is not a int ask again for a int.
+   *
+   * @param m String that is output in the console
+   * @return int the input user parse to int
+   */
   private int inId(String m) {
     out.println(m);
     while (!in.hasNextInt()) {
       out.println("Invalid id");
-      in.nextInt();
+      in.next();
     }
     int id = in.nextInt();
     return id;
+  }
+
+  /**
+   * Verify if the data have value or is null, if is null or empty return null if not return the
+   * data.
+   *
+   * @param data String
+   * @return String can be the data or a null
+   */
+  private String verifyStringForCli(String data) {
+    return data == null || data.isBlank() ? null : data;
+  }
+
+  /**
+   * Checks if the String if a date following {@code YYYY-MM-DD}.
+   *
+   * @param date is the string date
+   */
+  private LocalDate parseDate(String date) {
+    if (date.matches("^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$")) {
+      return LocalDate.parse(date);
+    } else {
+      return null;
+    }
   }
 }

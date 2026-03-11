@@ -13,8 +13,8 @@ public class TaskRepositoryImpl implements TaskRepository {
   private List<Task> taskList = new ArrayList<>();
 
   @Override
-  public void save(Task task) {
-    taskList.add(task);
+  public boolean save(Task task) {
+    return taskList.add(task);
   }
 
   @Override
@@ -47,11 +47,12 @@ public class TaskRepositoryImpl implements TaskRepository {
   }
 
   @Override
-  public Task completeTask(Task task) {
-    deleteTask(task);
+  public boolean completeTask(Task task) {
+    if (!deleteTask(task)) {
+      return false;
+    }
     Task newTask = task.updateStatus("DONE");
-    taskList.add(newTask);
-    return newTask;
+    return taskList.add(newTask);
   }
 
   @Override
@@ -87,11 +88,12 @@ public class TaskRepositoryImpl implements TaskRepository {
   }
 
   @Override
-  public Task undoneTask(Task task) {
+  public boolean undoneTask(Task task) {
+    if (!deleteTask(task)) {
+      return false;
+    }
     Task newTask = task.updateStatus("TODO");
-    deleteTask(task);
-    taskList.add(newTask);
-    return newTask;
+    return taskList.add(newTask);
   }
 
   @Override

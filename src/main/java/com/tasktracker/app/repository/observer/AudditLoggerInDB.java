@@ -2,8 +2,8 @@ package com.tasktracker.app.repository.observer;
 
 import com.tasktracker.app.domain.Event;
 import com.tasktracker.app.domain.Task;
-import java.util.ArrayList;
-import java.util.List;
+import com.tasktracker.app.exception.PersistenceException;
+import com.tasktracker.app.service.EventService;
 
 /**
  * Observer implementation responsible for auditing task-related actions.
@@ -17,9 +17,18 @@ import java.util.List;
  * <p>This class is typically used by services that want to track task operations such as creation,
  * completion or deletion.
  */
-public class AudditLogger implements Observer {
+public class AudditLoggerInDB implements Observer {
 
-  private List<Event> list = new ArrayList<>();
+  private EventService service;
+
+  /**
+   * Constructor, you must pass EventService.
+   *
+   * @param service EventService
+   */
+  public AudditLoggerInDB(EventService service) {
+    this.service = service;
+  }
 
   @Override
   public void update(Task task, String action) {
@@ -28,6 +37,10 @@ public class AudditLogger implements Observer {
             "AUDIT: %s EXECUTE ON THE TASK:\nTASK ID: %d\nTASK TITLE: %s",
             action, task.getId(), task.getTitle());
     System.out.println(o);
-    list.add(new Event(action, task.getId(), task.getTitle()));
+    try {
+      service.saveEvent(new Event(action, task.getId(), task.getTitle()));
+    } catch (PersistenceException ex) {
+      System.out.println(ex);
+    }
   }
 }

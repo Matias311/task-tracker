@@ -6,8 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
 import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.service.TaskService;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,34 +24,35 @@ public class CommandTest {
   @Test
   @DisplayName("Saving a task using a command")
   void savingTaskCommand() {
-    List<String> data = new ArrayList<>(List.of("Test", "", "", "", "", "", ""));
-    TaskCommand command = new SaveTaskCommand(service, 1, data);
+    TaskCommand command =
+        new SaveTaskCommand(
+            service,
+            1,
+            "Test",
+            null,
+            null,
+            null,
+            null,
+            LocalDate.now(),
+            LocalDate.now().plusDays(1));
     command.execute();
     assertEquals("Test", service.getAllTask().get(0).getTitle());
   }
 
   @Test
-  @DisplayName("Try to save a task with null data")
-  void saveWithNullData() {
-    Exception ex =
-        assertThrows(IllegalArgumentException.class, () -> new SaveTaskCommand(service, 1, null));
-    assertEquals("The service or data must have a value", ex.getMessage());
-  }
-
-  @Test
-  @DisplayName("Try to save with negative id")
-  void saveWithNegativeId() {
-    List<String> data = new ArrayList<>(List.of("Test", "", "", "", "", "", ""));
-    Exception ex =
-        assertThrows(IllegalArgumentException.class, () -> new SaveTaskCommand(service, -1, data));
-    assertEquals("The id must be > 0", ex.getMessage());
-  }
-
-  @Test
   @DisplayName("Complete a task using completeTaskCommand")
   void completeTaskUsingCommnad() {
-    List<String> data = new ArrayList<>(List.of("Test", "", "", "", "", "", ""));
-    TaskCommand command = new SaveTaskCommand(service, 1, data);
+    TaskCommand command =
+        new SaveTaskCommand(
+            service,
+            1,
+            "Test",
+            null,
+            null,
+            null,
+            null,
+            LocalDate.now(),
+            LocalDate.now().plusDays(1));
     command.execute();
 
     new CompleteTaskCommand(service, 1).execute();
@@ -70,19 +70,39 @@ public class CommandTest {
   @Test
   @DisplayName("Undone a task using UndoneTaskCommand")
   void undoneTaskUsingCommand() {
-    List<String> data = new ArrayList<>(List.of("Test", "", "", "", "DONE", "", ""));
-    TaskCommand command = new SaveTaskCommand(service, 1, data);
+
+    TaskCommand command =
+        new SaveTaskCommand(
+            service,
+            1,
+            "Test",
+            null,
+            null,
+            null,
+            "DONE",
+            LocalDate.now(),
+            LocalDate.now().plusDays(1));
     command.execute();
+
     new UndoneTaskCommand(service, 1).execute();
-    ;
+
     assertEquals("TODO", service.getAllTask().get(0).getStatus());
   }
 
   @Test
   @DisplayName("Delete task using DeleteCommand")
   void deleteTaskCommand() {
-    List<String> data = new ArrayList<>(List.of("Test", "", "", "", "DONE", "", ""));
-    TaskCommand command = new SaveTaskCommand(service, 1, data);
+    TaskCommand command =
+        new SaveTaskCommand(
+            service,
+            1,
+            "Test",
+            null,
+            null,
+            null,
+            "DONE",
+            LocalDate.now(),
+            LocalDate.now().plusDays(1));
     command.execute();
 
     new DeleteCommand(service, 1).execute();
