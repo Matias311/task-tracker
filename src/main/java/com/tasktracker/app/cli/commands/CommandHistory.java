@@ -1,7 +1,6 @@
 package com.tasktracker.app.cli.commands;
 
 import com.tasktracker.app.exception.PersistenceException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +24,7 @@ public class CommandHistory {
       command.execute();
       history.add(command);
     } catch (PersistenceException ex) {
-      PrintStream ps = new PrintStream(System.out);
-      ps.println(ex);
+      System.out.println(ex);
     }
   }
 

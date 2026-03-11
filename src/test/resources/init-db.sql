@@ -13,7 +13,7 @@ CREATE TABLE tasks
 CREATE TABLE audit_task
 (
     id             SERIAL    PRIMARY KEY,
-    id_task        INT       REFERENCES tasks(id),
+    id_task        INT       REFERENCES tasks(id) ON DELETE SET NULL,
     action         VARCHAR,
     task_title     VARCHAR,
     execution_date TIMESTAMP

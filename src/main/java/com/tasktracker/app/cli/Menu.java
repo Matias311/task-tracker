@@ -189,7 +189,7 @@ public class Menu {
     out.println(m);
     while (!in.hasNextInt()) {
       out.println("Invalid id");
-      in.nextInt();
+      in.next();
     }
     int id = in.nextInt();
     return id;
