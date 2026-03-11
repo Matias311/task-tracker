@@ -53,9 +53,10 @@ public final class TaskService {
     VerifyData.verifyInt(task.getId(), "ID must be > 0");
     VerifyData.verifyString(task.getTitle(), "Title must have a value");
 
-    repo.save(task);
-
-    observer.update(task, "SAVE");
+    boolean result = repo.save(task);
+    if (result) {
+      observer.update(task, "SAVE");
+    }
   }
 
   /**
@@ -107,12 +108,11 @@ public final class TaskService {
    * Update the status of a task when its todo or doing. Also use the observer to save the action
    *
    * @param task Task to update
-   * @return Task the new Task with the new Update
    * @throws IllegalArgumentException when you pass a null task
    * @throws IllegalStateException when the task is DONE
    * @see AudditLogger
    */
-  public Task completeTask(Task task) {
+  public void completeTask(Task task) {
     if (task == null) {
       throw new IllegalArgumentException("Invalid task");
     }
@@ -121,11 +121,10 @@ public final class TaskService {
       throw new IllegalStateException("The task is already in DONE status");
     }
 
-    Task newTask = repo.completeTask(task);
-    if (newTask != null) {
+    boolean op = repo.completeTask(task);
+    if (op == true) {
       observer.update(task, "COMPLETE TASK");
     }
-    return newTask;
   }
 
   /**
@@ -173,11 +172,10 @@ public final class TaskService {
    * Undone a task, the task can not be in todo status and it cant be null.
    *
    * @param task Task to update the status to todo
-   * @return Task the new task
    * @throws IllegalArgumentException if the task is null
    * @throws IllegalStateException if the task status is todo already
    */
-  public Task undoneTask(Task task) {
+  public void undoneTask(Task task) {
     if (task == null) {
       throw new IllegalArgumentException("Invalid task");
     }
@@ -185,11 +183,10 @@ public final class TaskService {
     if (task.getStatus().equals("TODO")) {
       throw new IllegalStateException("The task is already in TODO status");
     }
-    Task newTask = repo.undoneTask(task);
-    if (newTask != null) {
+    boolean result = repo.undoneTask(task);
+    if (result == true) {
       observer.update(task, "UNDONE");
     }
-    return newTask;
   }
 
   /**
