@@ -1,7 +1,7 @@
 package com.tasktracker.app.repository;
 
-import com.tasktracker.app.Exception.PersistenceException;
 import com.tasktracker.app.domain.Event;
+import com.tasktracker.app.exception.PersistenceException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
@@ -35,6 +35,6 @@ public final class EventDao implements EventRepository {
     } catch (Exception e) {
       throw new PersistenceException("Error: could not save the Audit\n", e);
     }
-    return result == 1 ? true : false;
+    return result == 1;
   }
 }

@@ -1,8 +1,8 @@
 package com.tasktracker.app.repository.observer;
 
-import com.tasktracker.app.Exception.PersistenceException;
 import com.tasktracker.app.domain.Event;
 import com.tasktracker.app.domain.Task;
+import com.tasktracker.app.exception.PersistenceException;
 import com.tasktracker.app.service.EventService;
 
 /**

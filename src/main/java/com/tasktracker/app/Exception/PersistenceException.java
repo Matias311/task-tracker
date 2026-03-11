@@ -1,4 +1,4 @@
-package com.tasktracker.app.Exception;
+package com.tasktracker.app.exception;
 
 /** Exception for errors with the persistance. */
 public class PersistenceException extends RuntimeException {

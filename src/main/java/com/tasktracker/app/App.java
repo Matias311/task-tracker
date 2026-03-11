@@ -16,13 +16,17 @@ public class App {
    * @param args String of arrays
    */
   public static void main(String[] args) {
-    Menu.of(
-            System.in,
-            System.out,
-            new TaskService(
-                new TaskDao(ConnectionJdbc.INSTANCE.getConnection()),
-                new AudditLoggerInDB(
-                    new EventService(new EventDao(ConnectionJdbc.INSTANCE.getConnection())))))
-        .start();
+    try {
+      Menu.of(
+              System.in,
+              System.out,
+              new TaskService(
+                  new TaskDao(ConnectionJdbc.INSTANCE.getConnection()),
+                  new AudditLoggerInDB(
+                      new EventService(new EventDao(ConnectionJdbc.INSTANCE.getConnection())))))
+          .start();
+    } catch (Exception e) {
+      System.out.println(e);
+    }
   }
 }

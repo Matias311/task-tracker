@@ -1,7 +1,7 @@
 package com.tasktracker.app.repository;
 
-import com.tasktracker.app.Exception.PersistenceException;
 import com.tasktracker.app.domain.Task;
+import com.tasktracker.app.exception.PersistenceException;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -50,7 +50,7 @@ public class TaskDao implements TaskRepository {
     } catch (Exception e) {
       throw new PersistenceException("Error: could not save the task\n", e);
     }
-    return result == 1 ? true : false;
+    return result == 1;
   }
 
   @Override
@@ -113,7 +113,7 @@ public class TaskDao implements TaskRepository {
       throw new PersistenceException("Error: can not update the task status to DONE\n", e);
     }
 
-    return result == 1 ? true : false;
+    return result == 1;
   }
 
   @Override
@@ -162,7 +162,7 @@ public class TaskDao implements TaskRepository {
     } catch (Exception e) {
       throw new PersistenceException("Error: can not update the status to TODO of the task\n", e);
     }
-    return result == 1 ? true : false;
+    return result == 1;
   }
 
   @Override
@@ -174,7 +174,7 @@ public class TaskDao implements TaskRepository {
     } catch (Exception e) {
       throw new PersistenceException("Error: can not search task by the id\n", e);
     }
-    return Optional.of(list.get(0));
+    return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
   }
 
   @Override
@@ -186,7 +186,7 @@ public class TaskDao implements TaskRepository {
     } catch (Exception e) {
       throw new PersistenceException("Error: can not delete the task\n", e);
     }
-    return result == 1 ? true : false;
+    return result == 1;
   }
 
   /**

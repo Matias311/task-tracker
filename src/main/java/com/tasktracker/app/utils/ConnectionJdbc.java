@@ -25,13 +25,7 @@ public enum ConnectionJdbc {
    * @return Connection for postgresql
    * @throws SQLException if can not connect to Posgresql
    */
-  public Connection getConnection() {
-    Connection con = null;
-    try {
-      con = dataSource.getConnection();
-    } catch (Exception e) {
-      System.out.println("Error to create the connection to the database");
-    }
-    return con;
+  public Connection getConnection() throws SQLException {
+    return dataSource.getConnection();
   }
 }

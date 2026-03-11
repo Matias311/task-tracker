@@ -1,10 +1,10 @@
 package com.tasktracker.app.service;
 
-import com.tasktracker.app.Exception.NotFoundException;
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.domain.TaskPriority;
 import com.tasktracker.app.domain.TaskStatus;
 import com.tasktracker.app.domain.TaskType;
+import com.tasktracker.app.exception.NotFoundException;
 import com.tasktracker.app.repository.TaskRepository;
 import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.repository.observer.Observer;
