@@ -1,28 +1,34 @@
 package com.tasktracker.app.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.domain.Task;
+import com.tasktracker.app.repository.EventRepositoryImpl;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
-import com.tasktracker.app.repository.observer.AudditLogger;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 
-@DisplayName("Test for class task service")
+@Tag("unit")
+@DisplayName("Unit tests for TaskService (in-memory, no database)")
 public class TaskServiceTest {
 
   private TaskService service;
+  private EventRepositoryImpl eventRepo;
 
   @BeforeEach
   void setUp() {
-    this.service = new TaskService(new TaskRepositoryImpl(), new AudditLogger());
+    eventRepo = new EventRepositoryImpl();
+    // Constructor sin Connection - para tests in-memory
+    this.service = new TaskService(new TaskRepositoryImpl(), eventRepo);
   }
 
   @Test
@@ -218,13 +224,15 @@ public class TaskServiceTest {
     assertEquals("The task is already in TODO status", ex.getMessage());
   }
 
-  @Test
-  @DisplayName("Delete task")
-  void deleteTask() {
-    service.saveTask(new Task.Builder(1, "Test").build());
-    Task task = service.searchTaskById(1);
-    assertTrue(service.deleteTask(task));
-  }
+   @Test
+   @DisplayName("Delete task")
+   void deleteTask() {
+     service.saveTask(new Task.Builder(1, "Test").build());
+     Task task = service.searchTaskById(1);
+     boolean deleted = service.deleteTask(task);
+     assertTrue(deleted);
+     assertFalse(service.getAllTask().stream().map(Task::getTitle).toList().contains("Test"));
+   }
 
   @Test
   @DisplayName("Delete task with null task")
