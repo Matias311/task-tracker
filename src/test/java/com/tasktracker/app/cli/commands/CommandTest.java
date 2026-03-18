@@ -3,24 +3,22 @@ package com.tasktracker.app.cli.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.tasktracker.app.repository.EventRepositoryImpl;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
+import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.service.TaskService;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-@Tag("unit")
-@DisplayName("Unit tests for Command classes")
+@DisplayName("Class test for the Taskcommand")
 public class CommandTest {
 
   private TaskService service;
 
   @BeforeEach
   void setUp() {
-    this.service = new TaskService(new TaskRepositoryImpl(), new EventRepositoryImpl());
+    this.service = new TaskService(new TaskRepositoryImpl(), new AudditLogger());
   }
 
   @Test
