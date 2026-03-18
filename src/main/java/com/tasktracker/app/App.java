@@ -21,9 +21,9 @@ public class App {
               System.in,
               System.out,
               new TaskService(
-                  new TaskDao(ConnectionJdbc.INSTANCE.getConnection()),
+                  new TaskDao(ConnectionJdbc.getConnection()),
                   new AudditLoggerInDB(
-                      new EventService(new EventDao(ConnectionJdbc.INSTANCE.getConnection())))))
+                      new EventService(new EventDao(ConnectionJdbc.getConnection())))))
           .start();
     } catch (Exception e) {
       System.out.println(e);
