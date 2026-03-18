@@ -55,6 +55,12 @@
       <version>2.0.16</version>
       <scope>test</scope>
     </dependency>
+    <!-- HikariCP for the pool of connection -->
+    <dependency>
+      <groupId>com.zaxxer</groupId>
+      <artifactId>HikariCP</artifactId>
+      <version>7.0.2</version>
+    </dependency>
   </dependencies>
   <build>
     <pluginManagement>
