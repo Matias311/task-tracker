@@ -28,11 +28,7 @@ public class DeleteCommand implements TaskCommand {
   @Override
   public void execute() {
     Task task = service.searchTaskById(id);
-    boolean result = service.deleteTask(task);
-    if (result) {
-      System.out.println("Task with the id: " + id + " its deleted");
-    } else {
-      System.out.println("Couldn't delete the task with the id " + id);
-    }
+    service.deleteTask(task);
+    System.out.println("Task with the id: " + id + " its deleted");
   }
 }

@@ -2,8 +2,8 @@ package com.tasktracker.app.service;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.tasktracker.app.domain.Task;
 import com.tasktracker.app.repository.TaskRepositoryImpl;
@@ -223,7 +223,8 @@ public class TaskServiceTest {
   void deleteTask() {
     service.saveTask(new Task.Builder(1, "Test").build());
     Task task = service.searchTaskById(1);
-    assertTrue(service.deleteTask(task));
+    service.deleteTask(task);
+    assertFalse(service.getAllTask().stream().map(Task::getType).toList().contains("Test"));
   }
 
   @Test

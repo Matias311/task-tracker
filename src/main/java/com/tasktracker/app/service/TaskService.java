@@ -5,10 +5,14 @@ import com.tasktracker.app.domain.TaskPriority;
 import com.tasktracker.app.domain.TaskStatus;
 import com.tasktracker.app.domain.TaskType;
 import com.tasktracker.app.exception.NotFoundException;
+import com.tasktracker.app.exception.PersistenceException;
 import com.tasktracker.app.repository.TaskRepository;
 import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.repository.observer.Observer;
+import com.tasktracker.app.utils.TransactionalInterface;
 import com.tasktracker.app.utils.VerifyData;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -25,8 +29,9 @@ import java.util.List;
  */
 public final class TaskService {
 
-  private TaskRepository repo;
-  private Observer observer;
+  private final TaskRepository repo;
+  private final Observer observer;
+  private final Connection conn;
 
   /**
    * Constructor, you must pass the repository and Observer.
@@ -37,6 +42,20 @@ public final class TaskService {
   public TaskService(TaskRepository repo, Observer observer) {
     this.repo = repo;
     this.observer = observer;
+    this.conn = null;
+  }
+
+  /**
+   * Constructor, creates a service using the TaskRepository, Observer, Connection.
+   *
+   * @param repo TaskRepository
+   * @param observer Observer
+   * @param conn Connection
+   */
+  public TaskService(TaskRepository repo, Observer observer, Connection conn) {
+    this.repo = repo;
+    this.observer = observer;
+    this.conn = conn;
   }
 
   /**
@@ -45,7 +64,7 @@ public final class TaskService {
    * <p>The task data is validated before being persisted. If the task is successfully saved, the
    * corresponding audit event is sent to the configured {@link Observer}.
    *
-   * @param Task is the task to save, before is save we verify the values
+   * @param task to save, before is save we verify the values
    * @throws IllegalArgumentException if the id is not positive or the title is invalid
    */
   public void saveTask(Task task) {
@@ -53,10 +72,11 @@ public final class TaskService {
     VerifyData.verifyInt(task.getId(), "ID must be > 0");
     VerifyData.verifyString(task.getTitle(), "Title must have a value");
 
-    boolean result = repo.save(task);
-    if (result) {
-      observer.update(task, "SAVE");
-    }
+    useTransactionOperation(
+        () -> {
+          repo.save(task);
+          observer.update(task, "SAVE");
+        });
   }
 
   /**
@@ -121,10 +141,11 @@ public final class TaskService {
       throw new IllegalStateException("The task is already in DONE status");
     }
 
-    boolean op = repo.completeTask(task);
-    if (op == true) {
-      observer.update(task, "COMPLETE TASK");
-    }
+    useTransactionOperation(
+        () -> {
+          repo.completeTask(task);
+          observer.update(task, "COMPLETE TASK");
+        });
   }
 
   /**
@@ -183,27 +204,57 @@ public final class TaskService {
     if (task.getStatus().equals("TODO")) {
       throw new IllegalStateException("The task is already in TODO status");
     }
-    boolean result = repo.undoneTask(task);
-    if (result == true) {
-      observer.update(task, "UNDONE");
-    }
+    useTransactionOperation(
+        () -> {
+          repo.undoneTask(task);
+          observer.update(task, "UNDONE");
+        });
   }
 
   /**
    * Delete a task, if its doesnt in memory return false, if its delete return true.
    *
    * @param task Task to delete
-   * @return Boolean true if its deleted, false if is not
    * @throws IllegalArgumentException if the task is null
    */
-  public boolean deleteTask(Task task) {
+  public void deleteTask(Task task) {
     if (task == null) {
       throw new IllegalArgumentException("Invalid task");
     }
-    boolean result = repo.deleteTask(task);
-    if (result) {
-      observer.update(task, "DELETE");
+    useTransactionOperation(
+        () -> {
+          repo.deleteTask(task);
+          observer.update(task, "DELETE");
+        });
+  }
+
+  private void useTransactionOperation(TransactionalInterface operation) {
+    if (conn == null) {
+      try {
+        operation.execute();
+      } catch (Exception e) {
+        throw new PersistenceException("Error doing the transaction: " + e);
+      }
+      return;
     }
-    return result;
+
+    try {
+      conn.setAutoCommit(false);
+      operation.execute();
+      conn.commit();
+    } catch (Exception e) {
+      try {
+        conn.rollback();
+      } catch (SQLException rollbackException) {
+        e.addSuppressed(e);
+      }
+      throw new PersistenceException("Error using transaction: ", e);
+    } finally {
+      try {
+        conn.setAutoCommit(true);
+      } catch (SQLException setAutoCommitException) {
+        throw new PersistenceException("Could not restore auto commit: ", setAutoCommitException);
+      }
+    }
   }
 }
