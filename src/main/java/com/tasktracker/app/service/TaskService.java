@@ -13,7 +13,10 @@ import com.tasktracker.app.utils.TransactionalInterface;
 import com.tasktracker.app.utils.VerifyData;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service responsible for managing {@link Task} instances.
@@ -32,6 +35,7 @@ public final class TaskService {
   private final TaskRepository repo;
   private final Observer observer;
   private final Connection conn;
+  private Map<Integer, Task> cache;
 
   /**
    * Constructor, you must pass the repository and Observer.
@@ -43,6 +47,7 @@ public final class TaskService {
     this.repo = repo;
     this.observer = observer;
     this.conn = null;
+    this.cache = parseToCache(repo.getAllTask());
   }
 
   /**
@@ -56,6 +61,7 @@ public final class TaskService {
     this.repo = repo;
     this.observer = observer;
     this.conn = conn;
+    this.cache = parseToCache(repo.getAllTask());
   }
 
   /**
@@ -76,6 +82,7 @@ public final class TaskService {
         () -> {
           repo.save(task);
           observer.update(task, "SAVE");
+          cache.put(task.getId(), task);
         });
   }
 
@@ -85,7 +92,7 @@ public final class TaskService {
    * @return List of task , if in memory dont have any, return a empty list
    */
   public List<Task> getAllTask() {
-    return repo.getAllTask();
+    return cache.values().stream().toList();
   }
 
   /**
@@ -97,7 +104,10 @@ public final class TaskService {
    */
   public List<Task> filterByTypeTask(String type) {
     VerifyData.verifyEnum(type, TaskType.class, "The status task is invalid");
-    return repo.filterByType(type);
+    return cache.values().stream()
+        .filter(t -> t.getType() != null)
+        .filter(t -> t.getType().equals(type))
+        .toList();
   }
 
   /**
@@ -109,7 +119,10 @@ public final class TaskService {
    */
   public List<Task> filterByPriorityTask(String priority) {
     VerifyData.verifyEnum(priority, TaskPriority.class, "The priority task is invalid");
-    return repo.filterByPriority(priority);
+    return cache.values().stream()
+        .filter(t -> t.getPriority() != null)
+        .filter(t -> t.getPriority().equals(priority))
+        .toList();
   }
 
   /**
@@ -121,7 +134,10 @@ public final class TaskService {
    */
   public List<Task> filterByStatusTask(String status) {
     VerifyData.verifyEnum(status, TaskStatus.class, "The status task is invalid");
-    return repo.filterByStatus(status);
+    return cache.values().stream()
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> t.getStatus().equals(status))
+        .toList();
   }
 
   /**
@@ -130,6 +146,7 @@ public final class TaskService {
    * @param task Task to update
    * @throws IllegalArgumentException when you pass a null task
    * @throws IllegalStateException when the task is DONE
+   * @throws NotFoundException when the task is not in the cache
    * @see AudditLogger
    */
   public void completeTask(Task task) {
@@ -141,10 +158,15 @@ public final class TaskService {
       throw new IllegalStateException("The task is already in DONE status");
     }
 
+    if (cache.get(task.getId()) == null) {
+      throw new NotFoundException("The task is not in the cache");
+    }
+
     useTransactionOperation(
         () -> {
           repo.completeTask(task);
           observer.update(task, "COMPLETE TASK");
+          cache.put(task.getId(), task.updateStatus("DONE"));
         });
   }
 
@@ -154,7 +176,11 @@ public final class TaskService {
    * @return List of task if its empty return empty list
    */
   public List<Task> orderTaskByDueDate() {
-    return repo.orderByDueDate();
+    return cache.values().stream()
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> !t.getStatus().equals("DONE"))
+        .sorted(Comparator.comparing(Task::getDueDate).thenComparing(Task::getTitle))
+        .toList();
   }
 
   /**
@@ -163,7 +189,12 @@ public final class TaskService {
    * @return List of task
    */
   public List<Task> orderTaskByPriority() {
-    return repo.orderByPriority();
+    return cache.values().stream()
+        .filter(t -> t.getPriority() != null)
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> !t.getStatus().equals("DONE"))
+        .sorted(Comparator.comparing(Task::getPriority).thenComparing(Task::getTitle))
+        .toList();
   }
 
   /**
@@ -176,8 +207,11 @@ public final class TaskService {
    */
   public Task searchTaskById(int id) {
     VerifyData.verifyInt(id, "Invalid id");
-    return repo.searchById(id)
-        .orElseThrow(() -> new NotFoundException("Task with id: " + id + " not found"));
+    Task task = cache.get(id);
+    if (task == null) {
+      throw new NotFoundException("Task with id: " + id + " not found");
+    }
+    return task;
   }
 
   /**
@@ -186,7 +220,10 @@ public final class TaskService {
    * @return List of task
    */
   public List<Task> getAllTaskThatAreComplete() {
-    return repo.getAllTaskComplete();
+    return cache.values().stream()
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> t.getStatus().equals("DONE"))
+        .toList();
   }
 
   /**
@@ -208,6 +245,7 @@ public final class TaskService {
         () -> {
           repo.undoneTask(task);
           observer.update(task, "UNDONE");
+          cache.put(task.getId(), task.updateStatus("TODO"));
         });
   }
 
@@ -225,6 +263,7 @@ public final class TaskService {
         () -> {
           repo.deleteTask(task);
           observer.update(task, "DELETE");
+          cache.remove(task.getId());
         });
   }
 
@@ -256,5 +295,9 @@ public final class TaskService {
         throw new PersistenceException("Could not restore auto commit: ", setAutoCommitException);
       }
     }
+  }
+
+  private Map<Integer, Task> parseToCache(List<Task> list) {
+    return list.stream().collect(Collectors.toMap(Task::getId, t -> t));
   }
 }
