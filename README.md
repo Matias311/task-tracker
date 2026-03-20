@@ -15,8 +15,7 @@ Aplicacion CLI para crear y gestionar tareas, con persistencia en PostgreSQL via
 1. Crea un archivo `.env` en la raiz del proyecto:
 
 ```env
-POSTGRES_HOST=postgres
-POSTGRES_DB=tasktracker
+POSTGRES_URL=url 
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=tu_password
 ```

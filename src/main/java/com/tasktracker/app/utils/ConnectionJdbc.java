@@ -12,11 +12,7 @@ public class ConnectionJdbc {
   private static HikariDataSource ds;
 
   static {
-    config.setJdbcUrl(
-        "jdbc:postgresql://"
-            + System.getenv("POSTGRES_HOST")
-            + "localhost:5432/"
-            + System.getenv("POSTGRES_DB"));
+    config.setJdbcUrl(System.getenv("POSTGRES_URL"));
     config.setUsername(System.getenv("POSTGRES_USER"));
     config.setPassword(System.getenv("POSTGRES_PASSWORD"));
     config.setMaximumPoolSize(10);

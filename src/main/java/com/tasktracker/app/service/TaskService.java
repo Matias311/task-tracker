@@ -287,7 +287,7 @@ public final class TaskService {
       try {
         conn.rollback();
       } catch (SQLException rollbackException) {
-        e.addSuppressed(e);
+        e.addSuppressed(rollbackException);
       }
       throw new PersistenceException("Error using transaction: ", e);
     } finally {
