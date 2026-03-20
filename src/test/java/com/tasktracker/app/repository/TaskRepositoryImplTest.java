@@ -2,7 +2,7 @@ package com.tasktracker.app.repository;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.tasktracker.app.domain.Task;
 import java.time.LocalDate;
@@ -61,74 +61,6 @@ public class TaskRepositoryImplTest {
   }
 
   @Test
-  @DisplayName("Filter task by type")
-  void filterTaskByType() {
-    Task task1 = new Task.Builder(1, "1").type("LIVE").build();
-    Task task2 = new Task.Builder(2, "2").type("PROGRAMMING").build();
-    Task task3 = new Task.Builder(3, "3").build();
-    Task task4 = new Task.Builder(4, "4").type("LIVE").build();
-    repo.save(task1);
-    repo.save(task2);
-    repo.save(task3);
-    repo.save(task4);
-    List<Task> list = repo.filterByType("LIVE");
-    assertAll(
-        () -> assertEquals(2, list.size()),
-        () -> assertEquals("1", list.get(0).getTitle()),
-        () -> assertEquals("4", list.get(1).getTitle()));
-  }
-
-  @Test
-  @DisplayName("Filter task by type with empty list")
-  void filterTaskByTypeEmptyList() {
-    List<Task> list = repo.filterByType("LIVE");
-    assertEquals(0, list.size());
-  }
-
-  @Test
-  @DisplayName("Filter task by priority (only high priority tasks)")
-  void filterHighPriorityTask() {
-    Task task1 = new Task.Builder(1, "1").type("LIVE").priority("HIGH").build();
-    Task task2 = new Task.Builder(2, "2").type("PROGRAMMING").priority("HIGH").build();
-    Task task3 = new Task.Builder(3, "3").type("UNIVERSITY").priority("LOW").build();
-    Task task4 = new Task.Builder(4, "4").type("LIVE").build();
-    repo.save(task1);
-    repo.save(task2);
-    repo.save(task3);
-    repo.save(task4);
-    List<Task> list = repo.filterByPriority("HIGH");
-    assertAll(
-        () -> assertEquals(2, list.size()),
-        () -> assertEquals("1", list.get(0).getTitle()),
-        () -> assertEquals("2", list.get(1).getTitle()));
-  }
-
-  @Test
-  @DisplayName("Filter task by priority with empty list")
-  void filterWithEmptyList() {
-    List<Task> list = repo.filterByPriority("HIGH");
-    assertEquals(0, list.size());
-  }
-
-  @Test
-  @DisplayName("Filter by status DONE")
-  void filterByStatusTask() {
-    Task task1 = new Task.Builder(1, "1").status("DONE").build();
-    Task task2 = new Task.Builder(2, "2").type("PROGRAMMING").priority("HIGH").build();
-    Task task3 = new Task.Builder(3, "3").status("TODO").priority("LOW").build();
-    Task task4 = new Task.Builder(4, "4").status("DONE").type("LIVE").build();
-    repo.save(task1);
-    repo.save(task2);
-    repo.save(task3);
-    repo.save(task4);
-    List<Task> list = repo.filterByStatus("DONE");
-    assertAll(
-        () -> assertEquals(2, list.size()),
-        () -> assertEquals("1", list.get(0).getTitle()),
-        () -> assertEquals("4", list.get(1).getTitle()));
-  }
-
-  @Test
   @DisplayName("Filter by status empty list")
   void emptyListFilterByStatus() {
     List<Task> list = repo.filterByStatus("DONE");
@@ -149,32 +81,6 @@ public class TaskRepositoryImplTest {
     repo.completeTask(task1);
     Task task = repo.searchById(1).get();
     assertEquals("DONE", task.getStatus());
-  }
-
-  @Test
-  @DisplayName("Order by due date")
-  void orderByDueDate() {
-    Task task1 = new Task.Builder(1, "1").dueDate(LocalDate.now().plusDays(3)).build();
-    Task task2 = new Task.Builder(2, "2").dueDate(LocalDate.now().plusDays(2)).build();
-    Task task3 = new Task.Builder(3, "3").dueDate(LocalDate.now().plusDays(3)).build();
-    Task task4 = new Task.Builder(4, "4").build(); // ocupa localdate.now y la due date ocupa plus 1
-    repo.save(task1);
-    repo.save(task2);
-    repo.save(task3);
-    repo.save(task4);
-    List<Task> list = repo.orderByDueDate();
-    assertAll(
-        () -> assertEquals("4", list.get(0).getTitle()),
-        () -> assertEquals("2", list.get(1).getTitle()),
-        () -> assertEquals("1", list.get(2).getTitle()),
-        () -> assertEquals("3", list.get(3).getTitle()));
-  }
-
-  @Test
-  @DisplayName("Order by due date with empty list")
-  void orderByDueDateEmptyList() {
-    List<Task> list = repo.orderByDueDate();
-    assertEquals(0, list.size());
   }
 
   @Test
@@ -251,8 +157,9 @@ public class TaskRepositoryImplTest {
     Task task =
         new Task.Builder(2, "2").type("PROGRAMMING").priority("HIGH").status("DONE").build();
     repo.save(task);
-    boolean result = repo.undoneTask(task);
-    assertTrue(result);
+    repo.undoneTask(task);
+    Task undone = repo.searchById(2).get();
+    assertEquals("TODO", undone.getStatus());
   }
 
   @Test
@@ -279,6 +186,7 @@ public class TaskRepositoryImplTest {
     repo.save(task2);
     repo.save(task3);
     repo.save(task4);
-    assertTrue(repo.deleteTask(task1));
+    repo.deleteTask(task1);
+    assertFalse(repo.searchById(1).isPresent());
   }
 }

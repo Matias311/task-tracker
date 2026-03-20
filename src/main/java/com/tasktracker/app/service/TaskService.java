@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
  * Service responsible for managing {@link Task} instances.
  *
  * <p>This service provides operations to create, retrieve, update, filter, order and delete tasks.
- * All persistence operations are delegated to a {@link TaskRepository} implementation.
+ * All persistence operations are delegated to a {@link TaskRepository} implementation and the
+ * cache.
  *
  * <p>An {@link Observer} is used to audit task-related operations such as creation, completion and
  * deletion.
@@ -171,7 +172,7 @@ public final class TaskService {
   }
 
   /**
-   * Order the task list by due date. to order the task uses
+   * Order the task list by due date. to order the task uses, just show the task with status todo.
    *
    * @return List of task if its empty return empty list
    */
@@ -184,7 +185,8 @@ public final class TaskService {
   }
 
   /**
-   * Order the task list by priority, if its empty the task list return a empty list.
+   * Order the task list by priority, if its empty the task list return a empty list. Just return
+   * the task with status todo.
    *
    * @return List of task
    */
