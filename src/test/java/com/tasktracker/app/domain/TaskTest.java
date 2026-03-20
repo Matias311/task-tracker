@@ -2,6 +2,7 @@ package com.tasktracker.app.domain;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.LocalDate;
@@ -35,7 +36,7 @@ public class TaskTest {
   void creatingTaskWithIdNameNullDescription() {
     Task task = new Task.Builder(1, "Test task").build();
     assertEquals("Test task", task.getTitle());
-    assertEquals(null, task.getDescription());
+    assertNull(task.getDescription());
   }
 
   @Test

@@ -5,17 +5,25 @@ import com.tasktracker.app.domain.TaskPriority;
 import com.tasktracker.app.domain.TaskStatus;
 import com.tasktracker.app.domain.TaskType;
 import com.tasktracker.app.exception.NotFoundException;
+import com.tasktracker.app.exception.PersistenceException;
 import com.tasktracker.app.repository.TaskRepository;
 import com.tasktracker.app.repository.observer.AudditLogger;
 import com.tasktracker.app.repository.observer.Observer;
+import com.tasktracker.app.utils.TransactionalInterface;
 import com.tasktracker.app.utils.VerifyData;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Service responsible for managing {@link Task} instances.
  *
  * <p>This service provides operations to create, retrieve, update, filter, order and delete tasks.
- * All persistence operations are delegated to a {@link TaskRepository} implementation.
+ * All persistence operations are delegated to a {@link TaskRepository} implementation and the
+ * cache.
  *
  * <p>An {@link Observer} is used to audit task-related operations such as creation, completion and
  * deletion.
@@ -25,8 +33,10 @@ import java.util.List;
  */
 public final class TaskService {
 
-  private TaskRepository repo;
-  private Observer observer;
+  private final TaskRepository repo;
+  private final Observer observer;
+  private final Connection conn;
+  private Map<Integer, Task> cache;
 
   /**
    * Constructor, you must pass the repository and Observer.
@@ -37,6 +47,22 @@ public final class TaskService {
   public TaskService(TaskRepository repo, Observer observer) {
     this.repo = repo;
     this.observer = observer;
+    this.conn = null;
+    this.cache = parseToCache(repo.getAllTask());
+  }
+
+  /**
+   * Constructor, creates a service using the TaskRepository, Observer, Connection.
+   *
+   * @param repo TaskRepository
+   * @param observer Observer
+   * @param conn Connection
+   */
+  public TaskService(TaskRepository repo, Observer observer, Connection conn) {
+    this.repo = repo;
+    this.observer = observer;
+    this.conn = conn;
+    this.cache = parseToCache(repo.getAllTask());
   }
 
   /**
@@ -45,7 +71,7 @@ public final class TaskService {
    * <p>The task data is validated before being persisted. If the task is successfully saved, the
    * corresponding audit event is sent to the configured {@link Observer}.
    *
-   * @param Task is the task to save, before is save we verify the values
+   * @param task to save, before is save we verify the values
    * @throws IllegalArgumentException if the id is not positive or the title is invalid
    */
   public void saveTask(Task task) {
@@ -53,10 +79,12 @@ public final class TaskService {
     VerifyData.verifyInt(task.getId(), "ID must be > 0");
     VerifyData.verifyString(task.getTitle(), "Title must have a value");
 
-    boolean result = repo.save(task);
-    if (result) {
-      observer.update(task, "SAVE");
-    }
+    useTransactionOperation(
+        () -> {
+          repo.save(task);
+          observer.update(task, "SAVE");
+          cache.put(task.getId(), task);
+        });
   }
 
   /**
@@ -65,7 +93,7 @@ public final class TaskService {
    * @return List of task , if in memory dont have any, return a empty list
    */
   public List<Task> getAllTask() {
-    return repo.getAllTask();
+    return cache.values().stream().toList();
   }
 
   /**
@@ -77,7 +105,10 @@ public final class TaskService {
    */
   public List<Task> filterByTypeTask(String type) {
     VerifyData.verifyEnum(type, TaskType.class, "The status task is invalid");
-    return repo.filterByType(type);
+    return cache.values().stream()
+        .filter(t -> t.getType() != null)
+        .filter(t -> t.getType().equals(type))
+        .toList();
   }
 
   /**
@@ -89,7 +120,10 @@ public final class TaskService {
    */
   public List<Task> filterByPriorityTask(String priority) {
     VerifyData.verifyEnum(priority, TaskPriority.class, "The priority task is invalid");
-    return repo.filterByPriority(priority);
+    return cache.values().stream()
+        .filter(t -> t.getPriority() != null)
+        .filter(t -> t.getPriority().equals(priority))
+        .toList();
   }
 
   /**
@@ -101,7 +135,10 @@ public final class TaskService {
    */
   public List<Task> filterByStatusTask(String status) {
     VerifyData.verifyEnum(status, TaskStatus.class, "The status task is invalid");
-    return repo.filterByStatus(status);
+    return cache.values().stream()
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> t.getStatus().equals(status))
+        .toList();
   }
 
   /**
@@ -110,6 +147,7 @@ public final class TaskService {
    * @param task Task to update
    * @throws IllegalArgumentException when you pass a null task
    * @throws IllegalStateException when the task is DONE
+   * @throws NotFoundException when the task is not in the cache
    * @see AudditLogger
    */
   public void completeTask(Task task) {
@@ -121,28 +159,44 @@ public final class TaskService {
       throw new IllegalStateException("The task is already in DONE status");
     }
 
-    boolean op = repo.completeTask(task);
-    if (op == true) {
-      observer.update(task, "COMPLETE TASK");
+    if (cache.get(task.getId()) == null) {
+      throw new NotFoundException("The task is not in the cache");
     }
+
+    useTransactionOperation(
+        () -> {
+          repo.completeTask(task);
+          observer.update(task, "COMPLETE TASK");
+          cache.put(task.getId(), task.updateStatus("DONE"));
+        });
   }
 
   /**
-   * Order the task list by due date. to order the task uses
+   * Order the task list by due date. to order the task uses, just show the task with status todo.
    *
    * @return List of task if its empty return empty list
    */
   public List<Task> orderTaskByDueDate() {
-    return repo.orderByDueDate();
+    return cache.values().stream()
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> !t.getStatus().equals("DONE"))
+        .sorted(Comparator.comparing(Task::getDueDate).thenComparing(Task::getTitle))
+        .toList();
   }
 
   /**
-   * Order the task list by priority, if its empty the task list return a empty list.
+   * Order the task list by priority, if its empty the task list return a empty list. Just return
+   * the task with status todo.
    *
    * @return List of task
    */
   public List<Task> orderTaskByPriority() {
-    return repo.orderByPriority();
+    return cache.values().stream()
+        .filter(t -> t.getPriority() != null)
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> !t.getStatus().equals("DONE"))
+        .sorted(Comparator.comparing(Task::getPriority).thenComparing(Task::getTitle))
+        .toList();
   }
 
   /**
@@ -155,8 +209,11 @@ public final class TaskService {
    */
   public Task searchTaskById(int id) {
     VerifyData.verifyInt(id, "Invalid id");
-    return repo.searchById(id)
-        .orElseThrow(() -> new NotFoundException("Task with id: " + id + " not found"));
+    Task task = cache.get(id);
+    if (task == null) {
+      throw new NotFoundException("Task with id: " + id + " not found");
+    }
+    return task;
   }
 
   /**
@@ -165,7 +222,10 @@ public final class TaskService {
    * @return List of task
    */
   public List<Task> getAllTaskThatAreComplete() {
-    return repo.getAllTaskComplete();
+    return cache.values().stream()
+        .filter(t -> t.getStatus() != null)
+        .filter(t -> t.getStatus().equals("DONE"))
+        .toList();
   }
 
   /**
@@ -183,27 +243,63 @@ public final class TaskService {
     if (task.getStatus().equals("TODO")) {
       throw new IllegalStateException("The task is already in TODO status");
     }
-    boolean result = repo.undoneTask(task);
-    if (result == true) {
-      observer.update(task, "UNDONE");
-    }
+    useTransactionOperation(
+        () -> {
+          repo.undoneTask(task);
+          observer.update(task, "UNDONE");
+          cache.put(task.getId(), task.updateStatus("TODO"));
+        });
   }
 
   /**
    * Delete a task, if its doesnt in memory return false, if its delete return true.
    *
    * @param task Task to delete
-   * @return Boolean true if its deleted, false if is not
    * @throws IllegalArgumentException if the task is null
    */
-  public boolean deleteTask(Task task) {
+  public void deleteTask(Task task) {
     if (task == null) {
       throw new IllegalArgumentException("Invalid task");
     }
-    boolean result = repo.deleteTask(task);
-    if (result) {
-      observer.update(task, "DELETE");
+    useTransactionOperation(
+        () -> {
+          repo.deleteTask(task);
+          observer.update(task, "DELETE");
+          cache.remove(task.getId());
+        });
+  }
+
+  private void useTransactionOperation(TransactionalInterface operation) {
+    if (conn == null) {
+      try {
+        operation.execute();
+      } catch (Exception e) {
+        throw new PersistenceException("Error doing the transaction: " + e);
+      }
+      return;
     }
-    return result;
+
+    try {
+      conn.setAutoCommit(false);
+      operation.execute();
+      conn.commit();
+    } catch (Exception e) {
+      try {
+        conn.rollback();
+      } catch (SQLException rollbackException) {
+        e.addSuppressed(rollbackException);
+      }
+      throw new PersistenceException("Error using transaction: ", e);
+    } finally {
+      try {
+        conn.setAutoCommit(true);
+      } catch (SQLException setAutoCommitException) {
+        throw new PersistenceException("Could not restore auto commit: ", setAutoCommitException);
+      }
+    }
+  }
+
+  private Map<Integer, Task> parseToCache(List<Task> list) {
+    return list.stream().collect(Collectors.toMap(Task::getId, t -> t));
   }
 }

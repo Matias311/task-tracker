@@ -15,8 +15,7 @@ Aplicacion CLI para crear y gestionar tareas, con persistencia en PostgreSQL via
 1. Crea un archivo `.env` en la raiz del proyecto:
 
 ```env
-POSTGRES_HOST=postgres
-POSTGRES_DB=tasktracker
+POSTGRES_URL=url 
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=tu_password
 ```
@@ -132,28 +131,98 @@ El schema se ejecuta automaticamente al levantar el contenedor de Postgres via `
 
 ## Tests
 
-73 tests organizados por capa:
+**155+ tests** organizados por capa con cobertura monitoreada por JaCoCo:
 
-| Suite | Tipo | Tests | Descripcion |
-|-------|------|-------|-------------|
-| `TaskTest` | Unitario | 10 | Construccion, validacion, update de Task |
-| `TaskRepositoryImplTest` | Unitario | 20 | CRUD en memoria |
-| `TaskServiceTest` | Unitario | 19 | Reglas de negocio, validaciones |
-| `CommandTest` | Unitario | 5 | Ejecucion de comandos |
-| `MenuTest` | Unitario | 6 | Input/output del CLI |
-| `TaskDaoTest` | Integracion | 12 | CRUD contra Postgres real (Testcontainers) |
-| `EventDaoTest` | Integracion | 1 | Persistencia de eventos (Testcontainers) |
+| Suite | Tipo | Tests | Cobertura | Descripcion |
+|-------|------|-------|-----------|-------------|
+| `TaskTest` | Unitario | 10 | 93% | Construccion, validacion, update de Task |
+| `CommandTest` | Unitario | 40 | 89% | Ejecucion de todos los comandos CLI |
+| `TaskServiceTest` | Unitario | 29 | 79% | Reglas de negocio, validaciones, cache |
+| `TaskRepositoryImplTest` | Unitario | 13 | 73% | CRUD en memoria |
+| `MenuTest` | Unitario | 14 | 40% | Input/output y validaciones del CLI |
+| `TaskDaoTest` | Integracion | 31 | 73% | CRUD contra Postgres real (Testcontainers) |
+| `EventDaoTest` | Integracion | 18 | 73% | Persistencia de eventos (Testcontainers) |
 
 ```bash
+# Ejecutar todos los tests
 mvn test
+
+# Generar reporte de cobertura
+mvn jacoco:report
+
+# Ver reporte en navegador
+open target/site/jacoco/index.html
 ```
+
+### Cobertura por Package
+
+```
+com.tasktracker.app.domain              93% ✅ GOOD
+com.tasktracker.app.cli.commands        89% ✅ GOOD
+com.tasktracker.app.service             79% ✅ GOOD
+com.tasktracker.app.repository          73% ✅ GOOD
+com.tasktracker.app.exception           50% 🟡 MEDIUM
+com.tasktracker.app.repository.observer 48% 🔴 LOW
+com.tasktracker.app.cli                 40% 🟡 MEDIUM
+com.tasktracker.app.utils               37% 🔴 LOW
+```
+
+**Objetivo**: 70%+ en todos los packages
+
+### Estrategia de Testing
+
+1. **Test Independence**: Cada test es completamente independiente, puede ejecutarse solo
+2. **Strong Assertions**: Verifican estado real del servicio, no solo valores de retorno
+3. **Boundary Testing**: Prueban edge cases (-1, 0, null, empty strings, 500+ chars)
+4. **Integration Testing**: Testcontainers usa PostgreSQL real para tests de DAO
+5. **In-Memory Repository**: TaskRepositoryImpl permite tests rápidos sin BD
 
 ## Stack
 
-- Java 17
-- Maven
-- PostgreSQL 16
-- JDBC con PreparedStatements
-- Testcontainers para tests de integracion
-- JUnit 5
-- Docker / Docker Compose
+- **Java 17**
+- **Maven**
+- **PostgreSQL 16**
+- **JDBC** con PreparedStatements
+- **HikariCP** para connection pooling
+- **Testcontainers** para tests de integracion
+- **JUnit 5** y **Mockito** para testing
+- **JaCoCo** para code coverage
+- **Docker / Docker Compose**
+
+## Cambios Recientes (desde v1.0.0)
+
+### 1. JaCoCo Code Coverage 
+- Configurado en `pom.xml`
+- Genera reportes HTML automáticamente con `mvn test`
+- Regla de fallo: mínimo 70% coverage por package
+- Reportes en `target/site/jacoco/`
+
+### 2. Cache Layer en TaskService
+- Se sincroniza atómicamente con BD en operaciones CRUD
+- Mejora performance de `getAllTask()` significativamente
+- Cache se actualiza dentro de transacciones (evita desincronización)
+
+### 3. Transacciones Atómicas
+- `saveTask()`, `completeTask()`, `undoneTask()`, `deleteTask()`
+- Usar `Connection.setAutoCommit(false)` + commit/rollback
+- Rollback automático en caso de error
+- Garantiza consistencia entre cache y BD
+
+### 4. HikariCP Connection Pool
+- Reemplaza `DriverManager.getConnection()` manual
+- Pool de conexiones configurado en `ConnectionJdbc`
+- Mejor manejo de recursos y rendimiento
+- Validación automática de conexiones
+- Dependency: `com.zaxxer:HikariCP:7.0.2`
+
+### 5. Expansión de Tests
+- **EventDaoTest**: 1 → 18 tests (+1700%)
+- **TaskDaoTest**: 9 → 31 tests (+244%)
+- **CommandTest**: 13 → 40 tests (+207%)
+- **Total**: 128 → 155+ tests (+21%)
+- **CLI commands coverage**: 33% → 89% (+56%)
+
+### 6. Mockito Dependencies
+- `mockito-core:5.2.0`
+- `mockito-junit-jupiter:5.2.0`
+- Infraestructura lista para mocking avanzado en tests
